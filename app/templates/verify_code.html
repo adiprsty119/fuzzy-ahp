@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ 'Verifikasi Kode' if current_lang == 'id' else 'Verification Code' }}
+    </title>
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+  </head>
+  <body class="font-sans bg-gray-100 m-0 p-0 flex justify-center items-center">
+    <div
+      class="bg-white p-10 md:px-16 md:py-24 rounded-[12px] shadow-lg w-full max-w-[40rem] mt-32"
+    >
+      <h1
+        class="text-center text-gray-800 mb-14 text-1xl md:text-3xl font-semibold"
+      >
+        {{ 'Masukkan Kode Verifikasi' if current_lang == 'id' else 'Input
+        Verification Code' }}
+      </h1>
+
+      <!-- Flash message Start -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="mb-4 p-4 rounded-md text-white bg-{{ 'green' if category == 'success' else 'red' }}-500"
+      >
+        {{ message | e }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+      <!-- Flash message End -->
+
+      <form id="verify-form">
+        <div class="mb-8">
+          <label
+            for="verification_code"
+            class="block text-xl font-medium text-gray-700 mb-2"
+            >{{ 'Kode Verifikasi' if current_lang == 'id' else 'Verification
+            Code:' }}</label
+          >
+          <input
+            type="text"
+            name="verification_code"
+            placeholder="{{ 'Kode Verifikasi' if current_lang == 'id' else 'Verification
+            Code:' }}"
+            required
+            class="w-full p-3 text-xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          /><br />
+        </div>
+        <div class="timer flex flex-col w-full mb-8 text-[0.9rem]">
+          <span id="countdown"
+            >{{ 'Memuat' if current_lang == 'id' else 'Load...' }}</span
+          >
+          <span id="expiry-time" data-expiry="{{ expiry_time }}"></span>
+        </div>
+        <button
+          type="submit"
+          id="verify-btn"
+          class="w-full bg-green-600 hover:bg-green-700 text-white text-xl font-semibold py-3 px-5 rounded-lg transition"
+        >
+          {{ 'Verifikasi' if current_lang == 'id' else 'Verify' }}
+        </button>
+      </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/verify_code.js') }}"></script>
+  </body>
+</html>

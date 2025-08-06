@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ 'Halaman Registrasi' if current_lang == 'id' else 'Registration Page'
+      }}
+    </title>
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+  </head>
+
+  <body
+    class="font-sans bg-gray-100 m-0 p-0 flex justify-center items-center min-h-[120vh]"
+  >
+    <div
+      class="bg-white p-10 md:px-16 rounded-[12px] shadow-lg w-full max-w-[35rem]"
+    >
+      <h1
+        class="text-center text-gray-800 mb-10 text-3xl md:text-3xl font-semibold"
+      >
+        {{ 'Registrasi' if current_lang == 'id' else 'Registration' }}
+      </h1>
+
+      <div class="flex flex-row justify-between gap-2 mt-9">
+        <button
+          class="w-full h-14 flex justify-center items-center gap-2 border border-gray-300 rounded-md px-2.5 text-lg cursor-pointer bg-white transition-colors duration-300 hover:#f5f5f5"
+          onclick="redirectToRegisterWithGoogle()"
+        >
+          <img
+            class="w-6 h-6"
+            src="https://www.gstatic.com/images/branding/product/1x/gsa_48dp.png"
+            alt="Google Logo"
+          />
+          {{ 'Registrasi dengan Google' if current_lang == 'id' else 'Register
+          with Google' }}
+        </button>
+      </div>
+      <div class="flex items-center justify-center my-5 mb-8">
+        <hr class="flex-grow border-t border-gray-300 mx-2.5" />
+        <span class="text-[0.9rem] text-gray-600"
+          >{{ 'Atau dengan resgitrasi manual?' if current_lang == 'id' else 'Or
+          with manual registration?' }}</span
+        >
+        <hr class="flex-grow border-t border-gray-300 mx-2.5" />
+      </div>
+
+      <!-- Flash message Start -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="mb-4 p-4 rounded-md text-white bg-{{ 'green' if category == 'success' else 'red' }}-500"
+      >
+        {{ message | e }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+      <!-- Flash message End -->
+
+      <form id="registerForm" action="/register" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="mb-4">
+          <label class="block mb-1 text-lg text-gray-800" for="fullName"
+            >{{ 'Nama Lengkap:' if current_lang == 'id' else 'Full Name'
+            }}</label
+          >
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            placeholder="{{ 'Nama Lengkap' if current_lang == 'id' else 'Full Name' }}"
+            required
+            class="w-full p-3 text-lg border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 text-lg text-gray-800" for="email"
+            >Email:</label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Email"
+            required
+            class="w-full p-3 text-[1rem] border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 text-lg text-gray-800" for="username"
+            >Username:</label
+          >
+          <input
+            type="username"
+            id="username"
+            name="username"
+            placeholder="Username"
+            required
+            class="w-full p-3 text-lg border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 text-lg text-gray-800" for="password"
+            >{{ 'Kata Sandi' if current_lang == 'id' else 'Password' }}</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="{{ 'Kata Sandi' if current_lang == 'id' else 'Password' }}"
+            required
+            class="w-full p-3 text-[1rem] border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+          />
+        </div>
+        <div class="mb-8">
+          <label class="block mb-1 text-lg text-gray-800" for="confirmPassword"
+            >{{ 'Konfirmasi Password:' if current_lang == 'id' else 'Confirm
+            Password' }}</label
+          >
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder="{{ 'Konfirmasi Password' if current_lang == 'id' else 'Confirm Password' }}"
+            required
+            class="w-full p-3 text-[1rem] border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+          />
+        </div>
+        <button
+          type="submit"
+          name="register"
+          value="register"
+          class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-3 px-5 mb-3 rounded-lg transition cursor-pointer"
+        >
+          {{ 'Registrasi' if current_lang == 'id' else 'Registrastion' }}
+        </button>
+      </form>
+      <p class="text-[0.9rem] mt-2">
+        {{ 'Sudah mempunyai akun?' if current_lang == 'id' else 'Already have an
+        account?' }}
+        <a
+          href="/login/"
+          class="text-blue-800 no-underline text-[0.9rem] hover:underline"
+          >{{ 'Masuk' if current_lang == 'id' else 'Login' }}</a
+        >
+      </p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+  </body>
+</html>

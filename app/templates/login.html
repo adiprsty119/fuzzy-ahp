@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {{ 'Halaman Login' if current_lang == 'id' else 'Login Page' }}
+    </title>
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+  </head>
+
+  <body class="font-sans bg-gray-100 m-0 p-0 flex justify-center items-center">
+    <div
+      class="bg-white mt-24 p-10 md:px-16 rounded-[12px] shadow-lg w-full max-w-[35rem]"
+    >
+      <h1
+        class="text-center text-gray-800 mb-12 text-3xl md:text-2xl font-semibold"
+      >
+        {{ 'Masuk ke Akun' if current_lang == 'id' else 'Login Account' }}
+      </h1>
+
+      <!-- Social Account Login -->
+      <div class="flex flex-row justify-between gap-2 mt-9">
+        <button
+          class="w-full h-14 flex justify-center items-center gap-2 border border-gray-300 rounded-md px-2.5 text-lg cursor-pointer bg-white transition-colors duration-300 hover:#f5f5f5"
+          onclick="redirectToLoginWithGoogle()"
+        >
+          <img
+            class="w-6 h-6"
+            src="https://www.gstatic.com/images/branding/product/1x/gsa_48dp.png"
+            alt="Google Logo"
+          />
+          {{ 'Masuk dengan Google' if current_lang == 'id' else 'Login with
+          Google' }}
+        </button>
+      </div>
+      <div class="flex items-center justify-center my-5 mb-6">
+        <hr class="flex-grow border-t border-gray-300 mx-2.5" />
+        <span class="text-[0.9rem] text-gray-600"
+          >{{ 'Atau sudah punya akun?' if current_lang == 'id' else 'Or an
+          account?' }}</span
+        >
+        <hr class="flex-grow border-t border-gray-300 mx-2.5" />
+      </div>
+
+      <!-- Flash message Start -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="mb-4 p-4 rounded-md text-white bg-{{ 'green' if category in ['success', 'welcome'] else 'red' }}-500"
+      >
+        {{ message | e }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+      <!-- Flash message End -->
+
+      <form id="loginForm" action="/login" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="mb-4">
+          <label class="block mb-2 text-xl text-gray-800" for="username">
+            Username:</label
+          >
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Username"
+            required
+            class="w-full p-3 text-[1rem] border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+          />
+        </div>
+        <div class="mb-4">
+          <label class="block mb-2 text-xl text-gray-800" for="password"
+            >{{ 'Kata Sandi:' if current_lang == 'id' else 'Password:' }}</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="{{ 'Kata Sandi' if current_lang == 'id' else 'Password' }}"
+            required
+            class="w-full p-3 text-[1rem] border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+          />
+        </div>
+        <p class="text-[0.9rem] mt-2 mb-6">
+          <a
+            href="/find_account/"
+            class="text-blue-800 no-underline text-[0.9rem] hover:underline"
+            >{{ 'Lupa password?' if current_lang == 'id' else 'Forgot password?'
+            }}</a
+          >
+        </p>
+        <button
+          type="submit"
+          name="login"
+          value="login"
+          class="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-semibold py-3 px-5 rounded-lg transition cursor-pointer"
+        >
+          {{ 'Masuk' if current_lang == 'id' else 'Login' }}
+        </button>
+        <div class="w-full flex justify-between">
+          <p class="text-[0.9rem] mt-6">
+            {{ "Belum punya akun?" if current_lang == 'id' else "Don't have an
+            account?" }}
+            <a
+              href="/register/"
+              class="text-blue-800 no-underline text-[0.9rem] hover:underline"
+            >
+              {{ 'Registrasi' if current_lang == 'id' else 'Registration' }}
+            </a>
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+  </body>
+</html>

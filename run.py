@@ -3,7 +3,7 @@ from flask_session import Session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import create_app, db
-from app.models import Request, Users, Notification
+from app.models import Users, Notification
 from flask_mail import Mail, Message
 from twilio.rest import Client
 from authlib.integrations.flask_client import OAuth
@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import CSRFError 
 from forms import LoginForm, RegisterForm
-from forms import SettingsForm
 from config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address

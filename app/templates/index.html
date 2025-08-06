@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Selamat Datang!' if current_lang == 'id' else 'Welcome!' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Vanila CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+
+    <!-- Animate.css -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/TOMMA.png') }}"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("theme", {
+          isDark: {{ 'true' if current_theme == 'dark' else 'false' }},
+
+          init() {
+            const stored = localStorage.getItem("theme");
+            this.isDark = stored ? (stored === "dark") : {{ 'true' if current_theme == 'dark' else 'false' }};
+            document.documentElement.classList.toggle("dark", this.isDark);
+            localStorage.setItem("theme", this.isDark ? "dark" : "light");
+          },
+          toggle() {
+            this.isDark = !this.isDark;
+            const themeValue = this.isDark ? "dark" : "light";
+            document.documentElement.classList.remove("dark", "light");
+            document.documentElement.classList.add(themeValue);
+            localStorage.setItem("theme", themeValue);
+            fetch(`/set-theme/${themeValue}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content
+              }
+            }).then(() => {
+              location.reload();
+            });
+          }
+        });
+      });
+    </script>
+    {% with flags = get_flashed_messages(category_filter=['first_time_flag']) %}
+    <script>
+      window.isFirstTimeLogin = {{ 'true' if 'first_time_login' in flags else 'false' }};
+    </script>
+    {% endwith %}
+  </head>
+
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <!-- Header -->
+    <header
+      id="main-header"
+      class="fixed top-0 left-0 w-full bg-opacity-100 backdrop-blur transition-all duration-300 shadow z-50 {{ 'bg-gray-900' if current_theme == 'dark' else 'bg-gray-100' }}"
+      x-data="{ open: false }"
+    >
+      <div
+        class="container mx-auto flex items-center justify-between py-6 px-6"
+      >
+        <div class="flex items-center space-x-2">
+          <img
+            src="{{ url_for('static', filename='images/SPARK.png') }} "
+            alt="SPARK"
+            class="h-9 w-auto md:h-16"
+          />
+        </div>
+
+        <!-- Center: Search + Language (Mobile) -->
+        <div class="flex md:hidden items-center space-x-4">
+          <div class="relative w-56">
+            <input
+              type="text"
+              placeholder="{{ 'Cari...' if current_lang == 'id' else 'Search...' }}"
+              class="px-3 py-2 rounded-full text-sm w-full {{ 'bg-gray-700 text-white placeholder-gray-400 focus:ring-yellow-400' if current_theme == 'dark' else 'bg-gray-100 border text-black placeholder-gray-400 focus:ring-gray-900' }}"
+            />
+            <div
+              class="absolute inset-y-0 right-3 flex items-center pointer-events-none"
+            >
+              <i class="fas fa-search text-gray-400 text-sm"></i>
+            </div>
+          </div>
+
+          <!-- Language Selector -->
+          <div x-data="{ open: false }" class="relative">
+            <!-- Tombol Bahasa -->
+            <button
+              @click="open = !open"
+              class="bg-yellow-400 text-gray-900 font-semibold px-3 py-1.5 rounded-md hover:bg-yellow-300 transition text-sm flex items-center gap-1 cursor-pointer"
+            >
+              {{ 'ID' if current_lang == 'id' else 'EN' }}
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              x-show="open"
+              @click.away="open = false"
+              x-transition
+              class="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-md z-50"
+            >
+              <a
+                href="{{ url_for('set_language', lang_code='id') }}"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100"
+              >
+                Bahasa
+              </a>
+              <a
+                href="{{ url_for('set_language', lang_code='en') }}"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100"
+              >
+                English
+              </a>
+            </div>
+          </div>
+
+          <!-- Sign Up -->
+          <a
+            href="/login/"
+            class="flex items-center justify-center gap-1 text-yellow-400 hover:text-yellow-300 transition text-2xl"
+            title="{{ 'Masuk ke Akun' if current_lang == 'id' else 'Login' }}"
+          >
+            <i class="fas fa-user-plus"></i>
+          </a>
+
+          <!-- Notifikasi -->
+          {% if session.get('username') or session.get('user') %}
+          <button
+            title="{{ 'Notifikasi' if current_lang == 'id' else 'Notification' }}"
+            class="relative flex items-center justify-center text-yellow-400 hover:text-yellow-300 transition text-2xl cursor-pointer my-3"
+          >
+            <i class="fas fa-bell"></i>
+            <span
+              class="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center font-semibold"
+            >
+              {{ notification_count }}
+            </span>
+          </button>
+          {% endif %}
+
+          <!-- Hamburger Icon (Mobile Only) -->
+          <button
+            @click="open = !open"
+            class="md:hidden text-3xl focus:outline-none {{ 'text-white' if current_theme == 'dark' else 'text-gray-900' }}"
+            :aria-expanded="open.toString()"
+            aria-label="Toggle navigation menu"
+          >
+            <i
+              :class="open ? 'fa-solid fa-xmark cursor-pointer' : 'fa-solid fa-bars cursor-pointer'"
+            ></i>
+          </button>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-6">
+          <nav class="flex space-x-4">
+            <a href="#home" class="hover:text-yellow-400 text-xl">
+              {{ 'Beranda' if current_lang == 'id' else 'Home' }}
+            </a>
+            <a href="#news" class="hover:text-yellow-400 text-xl">
+              {{ 'Berita' if current_lang == 'id' else 'News' }}
+            </a>
+            <a href="#about" class="hover:text-yellow-400 text-xl"
+              >{{ 'Tentang Kami' if current_lang == 'id' else 'About Us' }}
+            </a>
+            <a href="#services" class="hover:text-yellow-400 text-xl"
+              >{{ 'Layanan' if current_lang == 'id' else 'Services' }}
+            </a>
+          </nav>
+
+          <!-- Search + Language (Desktop) -->
+          <div class="flex items-center space-x-3">
+            <div class="relative">
+              <input
+                type="text"
+                placeholder="{{ 'Cari...' if current_lang == 'id' else 'Search...' }}"
+                class="pl-4 pr-10 py-2 rounded-full focus:outline-none focus:ring-2  {{ 'bg-gray-700 text-white placeholder-gray-400 focus:ring-yellow-400' if current_theme == 'dark' else 'bg-gray-100 border text-black placeholder-gray-400 focus:ring-gray-900' }}"
+              />
+              <div
+                class="absolute inset-y-0 right-3 flex items-center pointer-events-none"
+              >
+                <i
+                  class="fas fa-search text-sm {{ 'text-gray-400' if current_theme == 'dark' else 'text-gray-800' }}"
+                ></i>
+              </div>
+            </div>
+
+            <!-- Language Selector -->
+            <div x-data="{ open: false }" class="relative">
+              <!-- Tombol Bahasa -->
+              <button
+                @click="open = !open"
+                class="bg-yellow-400 font-semibold px-3 py-1.5 rounded-md hover:bg-yellow-300 transition text-sm flex items-center gap-1 cursor-pointer {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+              >
+                {{ 'ID' if current_lang == 'id' else 'EN' }}
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div
+                x-show="open"
+                @click.away="open = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 translate-y-1"
+                class="absolute right-0 mt-2 w-28 border rounded-md shadow-md z-50 {{ 'bg-gray-900 border-gray-600' if current_theme == 'dark' else 'bg-white border-gray-200' }}"
+              >
+                <a
+                  href="{{ url_for('set_language', lang_code='id') }}"
+                  class="block px-4 py-2 text-sm {{ 'text-white hover:bg-gray-600' if current_theme == 'dark' else 'text-gray-700 hover:bg-yellow-100' }}"
+                >
+                  Bahasa
+                </a>
+                <a
+                  href="{{ url_for('set_language', lang_code='en') }}"
+                  class="block px-4 py-2 text-sm {{ 'text-white hover:bg-gray-600' if current_theme == 'dark' else 'text-gray-700 hover:bg-yellow-100' }}"
+                >
+                  English
+                </a>
+              </div>
+            </div>
+
+            <!-- Dark Mode Toggle -->
+            <button
+              x-data
+              @click="$store.theme.toggle()"
+              :title="$store.theme.isDark ? '{{ 'Beralih ke Mode Terang' if current_lang == 'id' else 'Switch to Light Mode' }}' : '{{ 'Beralih ke Mode Gelap' if current_lang == 'id' else 'Switch to Dark Mode' }}'"
+              class="relative w-[80px] flex justify-center items-center bg-gray-800 dark:bg-yellow-400 text-yellow-300 dark:text-gray-900 px-0.5 py-1.5 rounded-md text-sm font-semibold transition hover:brightness-110 cursor-pointer"
+            >
+              <template
+                x-if="$store.theme.isDark"
+                class="absolute inset-0 flex justify-center items-center transition-opacity duration-300"
+                x-transition:enter="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="opacity-100"
+                x-transition:leave-end="opacity-0"
+              >
+                <span class="text-white"
+                  ><i class="fas fa-sun"></i>{{ 'Light' if current_lang == 'en'
+                  else 'Terang' }}</span
+                >
+              </template>
+              <template
+                x-if="!$store.theme.isDark"
+                class="absolute inset-0 flex justify-center items-center transition-opacity duration-300"
+                x-transition:enter="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="opacity-100"
+                x-transition:leave-end="opacity-0"
+              >
+                <span
+                  ><i class="fas fa-moon"></i> {{ 'Dark' if current_lang == 'en'
+                  else 'Gelap' }}</span
+                >
+              </template>
+            </button>
+
+            <!-- Notifikasi -->
+            {% if session.get('username') or session.get('user') %}
+            <button
+              id="notification-toggle"
+              title="{{ 'Notifikasi' if current_lang == 'id' else 'Notification' }}"
+              class="relative flex items-center justify-center text-yellow-400 hover:text-yellow-300 transition text-2xl cursor-pointer my-3"
+            >
+              <i class="fas fa-bell"></i>
+              <span
+                class="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center font-semibold"
+              >
+                {{ notification_count }}
+              </span>
+            </button>
+            {% endif %}
+
+            <!-- Notification Box -->
+            <div
+              id="notification-box"
+              class="fixed top-28 -right-2 translate-x-full shadow-lg border rounded-xl z-[9999] w-80 h-lvh md:w-96 transition-all duration-500 ease-in-out opacity-0 pointer-events-none scale-95 {{ 'bg-gray-800 border-gray-600' if current_theme == 'dark' else 'bg-white border-gray-400' }}"
+            >
+              <div class="border-b px-4 py-3">
+                <h2
+                  class="text-lg text-center font-bold relative {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+                >
+                  <span
+                    class="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-bounce"
+                    >1</span
+                  >
+                  {{ 'KOTAK MASUK' if current_lang == 'id' else 'INBOX' }}
+                </h2>
+              </div>
+
+              <!-- Tab Selector -->
+              <div
+                class="flex border-b text-sm font-medium {{ 'text-white' if current_theme == 'dark' else 'text-gray-500' }}"
+              >
+                <button
+                  id="tab-system"
+                  class="w-1/2 py-2 text-center border-b-2 cursor-pointer {{ 'border-white hover:text-white' if current_theme == 'dark' else 'border-black hover:text-black' }}"
+                  onclick="switchTab('system')"
+                >
+                  {{ 'Notifikasi Sistem' if current_lang == 'id' else 'System
+                  Notification' }}
+                </button>
+                <button
+                  id="tab-interaction"
+                  class="w-1/2 py-2 text-center border-b-2 border-transparent cursor-pointer {{ 'hover:text-white' if current_theme == 'dark' else 'hover:text-black' }}"
+                  onclick="switchTab('interaction')"
+                >
+                  {{ 'Interaksi' if current_lang == 'id' else 'Interaction' }}
+                </button>
+              </div>
+
+              <button
+                onclick="clearAllNotifications()"
+                class="px-4 py-2 text-right text-xs text-red-500 hover:text-red-700 hover:font-bold cursor-pointer w-full"
+              >
+                {{ 'Hapus Semua' if current_lang == 'id' else 'Clear All' }}
+              </button>
+
+              <!-- Message List Container -->
+              <div class="max-h-[400px] overflow-y-auto">
+                <div id="system-tab" class="space-y-3 p-4">
+                  <!-- Card 1 -->
+                  <div
+                    class="border rounded-lg p-3 shadow-sm hover:shadow-md transition {{ 'hover:bg-gray-800' if current_theme == 'dark' else 'border-gray-200 hover:bg-gray-50' }}"
+                  >
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-center gap-2">
+                        <i
+                          class="fas fa-exclamation-circle text-yellow-400 mr-2"
+                        ></i>
+                        <span class="text-sm font-semibold"
+                          >{{ 'Notifikasi Sistem' if current_lang == 'id' else
+                          'System Notification' }}</span
+                        >
+                        <span
+                          class="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+                        ></span>
+                      </div>
+                      <span class="text-xs text-gray-400 whitespace-nowrap"
+                        >{{ '14 jam lalu' if current_lang == 'id' else '14 hours
+                        ago' }}</span
+                      >
+                    </div>
+                    <h4
+                      class="mt-2 font-bold text-sm {{ 'text-white' if current_theme == 'dark' else 'text-gray-900' }}"
+                    >
+                      {{ '🎉 Liburan Seru Dimulai!' if current_lang == 'id' else
+                      '🎉 The Fun Holiday Begins!' }}
+                    </h4>
+                    <p
+                      class="text-sm pt-2.5 {{ 'text-gray-300' if current_theme == 'dark' else 'text-gray-600' }}"
+                    >
+                      {{ 'Ajukan permintaan minimal 2 layanan pembuatan aplikasi
+                      kami dan dapatkan diskon menarik untuk permintaan ke-3
+                      hingga 40%' if current_lang == 'id' else 'Submit requests
+                      for at least 2 of our application development services and
+                      get up to 40% off on your 3rd request!' }}
+                    </p>
+                    <a
+                      href="#"
+                      class="mt-2 inline-block text-sm text-blue-600 hover:underline"
+                    >
+                      {{ 'Pelajari selengkapnya' if current_lang == 'id' else
+                      'Learn more' }}</a
+                    >
+                  </div>
+
+                  <!-- Tambah card lain di sini -->
+                </div>
+
+                <!-- Tab: Interaksi -->
+                <div id="interaction-tab" class="hidden p-4 space-y-3">
+                  <div class="text-sm text-gray-600 italic">
+                    {{ 'Belum ada interaksi baru' if current_lang == 'id' else
+                    'No recent interactions' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% if session.get('username') or session.get('user') %}
+            <!-- Profil Icon (setelah login) -->
+            <div x-data="{ open: false }" class="relative group">
+              <!-- Tombol Gambar Profil -->
+              <button
+                @click="open = !open"
+                :aria-expanded="open.toString()"
+                aria-haspopup="true"
+                class="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition text-sm focus:outline-none cursor-pointer"
+                title="{{ 'Akun' if current_lang == 'id' else
+                    'Account' }}"
+              >
+                <img
+                  src="{% if profile_picture and profile_picture.startswith('http') %}{{ profile_picture }}{% else %}{{ url_for('static', filename=profile_picture or 'images/profil-default.jpg') }}{% endif %}"
+                  alt="Foto Profil"
+                  class="w-9 h-9 rounded-full border border-gray-300 object-cover"
+                />
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div
+                x-show="open"
+                @click.away="open = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 translate-y-1"
+                class="absolute -right-[30] mt-2 w-36 border rounded-md shadow-md z-50 {{ 'bg-gray-900 border-gray-600' if current_theme == 'dark' else 'bg-white border-gray-200' }}"
+              >
+                <a
+                  href="/settings/"
+                  class="block px-4 py-2 text-sm {{ 'text-white hover:bg-gray-600' if current_theme == 'dark' else 'text-gray-700 hover:bg-yellow-100' }}"
+                >
+                  <i
+                    class="fas fa-cog mr-2 {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+                  ></i>
+                  {{ 'Pengaturan' if current_lang == 'id' else 'Settings' }}
+                </a>
+                <a
+                  href="/logout/"
+                  class="block px-4 py-2 text-sm text-red-600 {{ 'hover:bg-gray-600' if current_theme == 'dark' else 'hover:bg-yellow-100' }}"
+                >
+                  <i class="fas fa-sign-out-alt mr-2 text-red-500"></i>
+                  {{ 'Keluar' if current_lang == 'id' else 'Logout' }}
+                </a>
+              </div>
+            </div>
+            {% else %}
+            <!-- Link Login System (sebelum login) -->
+            <a
+              href="/login/"
+              class="flex items-center justify-center gap-1 text-yellow-400 hover:text-yellow-300 transition text-2xl"
+              title="{{ 'Masuk ke Akun' if current_lang == 'id' else 'Login' }}"
+            >
+              <i class="fas fa-user-plus"></i>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Menu -->
+      <div
+        x-show="open"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-75"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="md:hidden px-6 pb-8 space-y-2 flex flex-col items-start text-start gap-2.5 {{ 'bg-gray-900' if current_theme == 'dark' else 'bg-gray-100' }}"
+      >
+        <hr class="self-stretch border-gray-700 mb-6" />
+        <a
+          href="#home"
+          @click="open = false"
+          class="hover:text-yellow-400 text-xl flex items-center gap-3"
+        >
+          <i class="fas fa-house"></i>
+          {{ 'Beranda' if current_lang == 'id' else 'Home' }}
+        </a>
+        <a
+          href="#news"
+          @click="open = false"
+          class="hover:text-yellow-400 text-xl flex items-center gap-3"
+        >
+          <i class="fas fa-newspaper"></i>
+          {{ 'Berita' if current_lang == 'id' else 'News' }}
+        </a>
+        <a
+          href="#about"
+          @click="open = false"
+          class="hover:text-yellow-400 text-xl flex items-center gap-3"
+        >
+          <i class="fas fa-circle-info"></i>
+          {{ 'Tentang Kami' if current_lang == 'id' else 'About Us' }}
+        </a>
+
+        <a
+          href="#services"
+          @click="open = false"
+          class="hover:text-yellow-400 text-xl flex items-center gap-3"
+        >
+          <i class="fas fa-concierge-bell"></i>
+          {{ 'Layanan' if current_lang == 'id' else 'Services' }}
+        </a>
+      </div>
+    </header>
+
+    <!-- Home Section -->
+    <section
+      id="home"
+      class="pt-24 min-h-screen flex items-center justify-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <div
+        class="container mx-auto px-6 flex flex-col mt-3.5 lg:flex-row items-center justify-between gap-10 text-white"
+      >
+        <!-- Text Content -->
+        <div class="flex-1 text-center lg:text-left">
+          <h2
+            class="text-2xl mt-6 md:text-5xl font-extrabold mb-6 leading-tight {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+          >
+            {{ 'Selamat Datang di' if current_lang == 'id' else 'Welcome to' }}
+            <span class="text-yellow-400"
+              >{{ 'Sistem Pendukung Keputusan (SPK) Berbasis Web' if
+              current_lang == 'id' else 'WEB-BASED DECISION SUPPORT SYSTEM
+              (DSS)' }}</span
+            >
+          </h2>
+          <p
+            class="text-sm md:text-xl mb-6 {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+          >
+            {{ 'Sistem ini diperuntukkan sebagai sistem pendukung keputusan
+            dalam penentuan peserta seleksi kegiatan Pramuka pada tingkat
+            Kwartir dengan menggunakan metode Fuzzy Analytical Hierarchy Process
+            berbasis website.' if current_lang == 'id' else 'This system is
+            designed as a decision support system for selecting participants in
+            the scouts selection process at the Kwartir level using the
+            web-based Fuzzy Analytical Hierarchy Process method.' }}
+          </p>
+          <div
+            class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+          >
+            <a
+              href="#services"
+              class="bg-yellow-400 px-6 py-3 rounded-full font-semibold hover:bg-yellow-300 hover:ring-2 hover:ring-yellow-200 transition {{ 'text-gray-900' if current_theme == 'dark' else 'text-white' }}"
+            >
+              {{ 'Jelajahi Layanan' if current_lang == 'id' else 'Explore
+              Services' }}
+            </a>
+          </div>
+        </div>
+
+        <!-- Illustration -->
+        <div class="flex-1 flex justify-center mb-10">
+          <div class="relative image-wrapper rounded-xl overflow-visible">
+            <!-- ✅ GLOW harus berada di bawah gambar -->
+            <div
+              class="absolute inset-0 bg-gradient-to-tr from-yellow-400 via-pink-500 to-indigo-500 blur-3xl opacity-40 z-0"
+            ></div>
+
+            <!-- ✅ Fade overlay hitam (pastikan ini tidak menutupi glow) -->
+            <div id="colorFade" class="black-fade rounded-xl"></div>
+
+            <!-- ✅ Gambar-gambar (z-index lebih tinggi dari glow) -->
+            <img
+              src="{{ url_for('static', filename='images/ilustrasi.png') }}"
+              alt="Ilustrasi 1"
+              class="fade-img active rounded-xl shadow-lg"
+              id="img1"
+            />
+            <img
+              src="{{ url_for('static', filename='images/ilustrasi-2.png') }}"
+              alt="Ilustrasi 2"
+              class="fade-img rounded-xl shadow-lg"
+              id="img2"
+            />
+            <img
+              src="{{ url_for('static', filename='images/ilustrasi-3.png') }}"
+              alt="Ilustrasi 3"
+              class="fade-img rounded-xl shadow-lg"
+              id="img3"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- News Section -->
+    <section
+      id="news"
+      class="py-20 min-h-screen wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-700 text-white' if current_theme == 'dark' else 'bg-gray-200 text-black' }}"
+    >
+      <div class="container mx-auto px-6 mt-7">
+        <div class="text-center mb-12">
+          <h2
+            class="text-2xl font-semibold mb-4 {{ 'text-yellow-400' if current_theme == 'dark' else 'text-yellow-500' }}"
+          >
+            {{ 'Berita Terbaru' if current_lang == 'id' else 'Latest News' }}
+          </h2>
+          <p class="text-sm">
+            {{ 'Ikuti perkembangan terbaru dan informasi terkini dari kami.' if
+            current_lang == 'id' else 'Stay updated with our latest news and
+            information.' }}
+          </p>
+        </div>
+
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+          <!-- Card 1 -->
+          <div
+            class="rounded-xl shadow-lg overflow-hidden hover:shadow-yellow-400/30 transition cursor-pointer flex flex-col {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-white' }}"
+          >
+            <img
+              src="{{ url_for('static', filename='images/') }}"
+              alt="{{ 'Berita 1' if current_lang == 'id' else 'News 1' }}"
+              class="w-full h-48 object-cover"
+            />
+            <div class="flex-grow p-3.5">
+              <h3 class="text-xl font-bold mb-2">
+                {{ 'Kwartir Cabang Gerakan Pramuka Merauke menyelenggarakan
+                Rapat Kerja Cabang (Rakercab) Tahun 2025' if current_lang ==
+                'id' else 'The Kwartir Cabang of the Gerakan Pramuka Merauke is
+                holding the 2025 Branch Working Meeting (Rakercab)' }}
+              </h3>
+              <p class="text-sm text-gray-400 mb-3">
+                {{ '09 Agustus 2025' if current_lang == 'id' else 'August 09,
+                2025' }}
+              </p>
+              <p class="mb-4 text-[0.9rem]">
+                {{ 'Kwartir Cabang Gerakan Pramuka Merauke menggelar Rapat Kerja
+                Cabang (Rakercab) Tahun 2025 sebagai forum strategis untuk
+                merumuskan program kerja, mengevaluasi kegiatan sebelumnya, dan
+                memperkuat sinergi dengan Kwartir Ranting dalam upaya memajukan
+                gerakan Pramuka di tingkat cabang...' if current_lang == 'id'
+                else 'The Kwartir Cabang of the Gerakan Pramuka Merauke is
+                holding the 2025 Branch Working Meeting (Rakercab) as a
+                strategic forum to formulate work programs, evaluate previous
+                activities, and strengthen synergy with Kwartir Ranting in an
+                effort to advance the Scouting movement at the branch level...'
+                }}
+              </p>
+            </div>
+            <a
+              href="#"
+              class="text-yellow-400 text-[0.9rem] hover:underline font-semibold mt-6 self-start p-3.5"
+            >
+              {{ 'Selengkapnya →' if current_lang == 'id' else 'Learn More →' }}
+            </a>
+          </div>
+
+          <!-- Card 2 -->
+          <div
+            class="rounded-xl shadow-lg overflow-hidden hover:shadow-yellow-400/30 transition cursor-pointer flex flex-col {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-white' }}"
+          >
+            <img
+              src="{{ url_for('static', filename='images/') }}"
+              alt="{{ 'Berita 2' if current_lang == 'id' else 'News 2' }}"
+              class="w-full h-48 object-cover"
+            />
+            <div class="flex-grow p-3.5">
+              <h3 class="text-xl font-bold mb-2">
+                {{ 'Kwartir Cabang Gerakan Pramuka Merauke siap menyukseskan
+                rangkaian kegiatan menjelang pelaksanaan Hari Pramuka pada
+                tanggal 14 Agustus 2025' if current_lang == 'id' else 'The
+                Kwartir Cabang of the Gerakan Pramuka Merauke is Ready to
+                Support the Series of Activities Leading Up to Scout Day on
+                August 14, 2025' }}
+              </h3>
+              <p class="text-sm text-gray-400 mb-3">
+                {{ '10 Agustus 2025' if current_lang == 'id' else 'August 10,
+                2025' }}
+              </p>
+              <p class="mb-4 text-[0.9rem]">
+                {{ 'Kwartir Cabang Gerakan Pramuka Merauke menyatakan
+                komitmennya untuk menyukseskan berbagai kegiatan yang akan
+                diselenggarakan menjelang Hari Pramuka pada 14 Agustus 2025,
+                sebagai bentuk semangat dan partisipasi aktif dalam memperingati
+                hari besar kepramukaan...' if current_lang == 'id' else 'The
+                Kwartir Cabang of the Gerakan Pramuka Merauke has expressed its
+                commitment to supporting and ensuring the success of various
+                activities leading up to Scout Day on August 14, 2025, as a form
+                of enthusiasm and active participation in commemorating this
+                important scouting occasion...' }}
+              </p>
+            </div>
+            <a
+              href="#"
+              class="text-yellow-400 text-[0.9rem] hover:underline font-semibold mt-6 self-start p-3.5"
+            >
+              {{ 'Selengkapnya →' if current_lang == 'id' else 'Learn More →' }}
+            </a>
+          </div>
+
+          <!-- Card 3 -->
+          <div
+            class="rounded-xl shadow-lg overflow-hidden hover:shadow-yellow-400/30 transition cursor-pointer flex flex-col {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-white' }}"
+          >
+            <img
+              src="{{ url_for('static', filename='images/') }}"
+              alt="{{ 'Berita 3' if current_lang == 'id' else 'News 3' }}"
+              class="w-full h-48 object-cover"
+            />
+            <div class="flex-grow p-3.5">
+              <h3 class="text-xl font-bold mb-2">
+                {{ 'Kwartir Cabang Gerakan Pramuka Merauke siap berpartisipasi
+                dalam kegiatan Jambore Nasional Tahun 2026' if current_lang ==
+                'id' else 'The Kwartir Cabang of the Gerakan Pramuka Merauke is
+                ready to participate in the 2026 National Jamboree' }}
+              </h3>
+              <p class="text-sm text-gray-400 mb-3">
+                {{ '13 September 2025' if current_lang == 'id' else 'September
+                13, 2025' }}
+              </p>
+              <p class="mb-4 text-[0.9rem]">
+                {{ 'Kwartir Cabang Gerakan Pramuka Merauke menyatakan
+                kesiapannya untuk turut serta dalam Jambore Nasional Tahun 2026
+                sebagai bentuk komitmen dalam membina dan mengembangkan generasi
+                muda melalui kegiatan kepramukaan tingkat nasional...' if
+                current_lang == 'id' else 'The Kwartir Cabang of the Gerakan
+                Pramuka Merauke has expressed its readiness to participate in
+                the 2026 National Jamboree, demonstrating its commitment to
+                nurturing and developing young generations through
+                national-level scouting activities...' }}
+              </p>
+            </div>
+            <a
+              href="#"
+              class="text-yellow-400 text-[0.9rem] hover:underline font-semibold mt-6 self-start p-3.5"
+            >
+              {{ 'Selengkapnya →' if current_lang == 'id' else 'Learn More →' }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section
+      id="about"
+      class="py-20 min-h-screen wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <div class="container mx-auto px-6 mt-7">
+        <div class="text-center mb-12">
+          <h2
+            class="text-2xl font-semibold mb-4 pt-6 {{ 'text-yellow-400' if current_theme == 'dark' else 'text-yellow-500' }}"
+          >
+            {{ 'Tentang Kami' if current_lang == 'id' else 'About Us' }}
+          </h2>
+          <p class="text-sm max-w-2xl mx-auto">
+            {{ 'Kami adalah tim yang berdedikasi untuk menghadirkan solusi
+            inovatif dan berkualitas di bidang teknologi informasi.' if
+            current_lang == 'id' else 'We are a dedicated team committed to
+            delivering innovative and high-quality solutions in the field of
+            information technology.' }}
+          </p>
+        </div>
+
+        <!-- Grid content -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+          <!-- Image -->
+          <div class="flex justify-center">
+            <img
+              src="{{ url_for('static', filename='images/') }}"
+              alt="{{ 'Tim Kami' if current_lang == 'id' else 'Our team' }}"
+              class="rounded-xl shadow-lg"
+            />
+          </div>
+
+          <!-- Description -->
+          <div>
+            <h3 class="text-xl font-bold mb-4">
+              {{ 'Mengapa Memilih Kami?' if current_lang == 'id' else 'Why
+              Choose Us?' }}
+            </h3>
+            <ul class="space-y-4 text-lg">
+              <li class="flex items-start">
+                <i
+                  class="fas fa-check-circle text-yellow-400 text-[0.9rem] mt-1 mr-3"
+                ></i>
+                {{ 'Tim profesional dengan pengalaman dalam berbagai proyek TI
+                skala kecil hingga besar.' if current_lang == 'id' else 'A
+                professional team with experience in various IT projects, from
+                small to large scale.' }}
+              </li>
+              <li class="flex items-start">
+                <i
+                  class="fas fa-check-circle text-yellow-400 text-[0.9rem] mt-1 mr-3"
+                ></i>
+                {{ 'Komitmen penuh terhadap kualitas, keamanan, dan kepuasan
+                klien.' if current_lang == 'id' else 'Full commitment to
+                quality, security, and client satisfaction.' }}
+              </li>
+              <li class="flex items-start">
+                <i
+                  class="fas fa-check-circle text-yellow-400 text-[0.9rem] mt-1 mr-3"
+                ></i>
+                {{ 'Layanan menyeluruh dari perencanaan, pengembangan, hingga
+                pemeliharaan.' if current_lang == 'id' else 'Comprehensive
+                services from planning and development to maintenance.' }}
+              </li>
+              <li class="flex items-start">
+                <i
+                  class="fas fa-check-circle text-yellow-400 text-[0.9rem] mt-1 mr-3"
+                ></i>
+                {{ 'Dukungan IT lokal untuk Papua Selatan dengan pemahaman
+                konteks budaya dan geografis.' if current_lang == 'id' else
+                'Local IT support for South Papua with an understanding of
+                cultural and geographical context.' }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section
+      id="services"
+      class="py-20 min-h-screen wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-700 text-white' if current_theme == 'dark' else 'bg-gray-200 text-black' }}"
+    >
+      <div class="container mx-auto px-6 mt-7">
+        <div class="text-center mb-12">
+          <h2
+            class="text-2xl font-semibold mb-4 pt-6 {{ 'text-yellow-400' if current_theme == 'dark' else 'text-yellow-500' }}"
+          >
+            {{ 'Layanan Kami' if current_lang == 'id' else 'Our Services' }}
+          </h2>
+          <p class="text-sm max-w-2xl mx-auto">
+            {{ 'Berbagai layanan profesional yang kami tawarkan untuk mendukung
+            transformasi digital Anda.' if current_lang == 'id' else 'Various
+            professional services we offer to support your digital
+            transformation.' }}
+          </p>
+        </div>
+
+        <!-- Services Grid -->
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-10"
+        >
+          <!-- Layanan 1 -->
+          <div
+            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
+          >
+            <div class="text-yellow-400 text-4xl mb-4">
+              <i class="fas fa-laptop-code bounce-on-hover"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">
+              {{ 'Pengembangan Website' if current_lang == 'id' else 'Website
+              Development' }}
+            </h3>
+            <p class="text-sm">
+              {{ 'Membangun aplikasi berbasis website yang modern, responsif,
+              dan aman sesuai kebutuhan Anda.' if current_lang == 'id' else
+              'Building a modern, responsive, and secure web-based application
+              tailored to your needs.' }}
+            </p>
+          </div>
+
+          <!-- Layanan 2 -->
+          <div
+            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
+          >
+            <div class="text-yellow-400 text-4xl mb-4">
+              <i class="fas fa-server shake-on-hover"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">
+              {{ 'Hosting & Server' if current_lang == 'id' else 'Hosting &
+              Servers' }}
+            </h3>
+            <p class="text-sm">
+              {{ 'Menyediakan layanan hosting, server, dan domain dengan
+              performa tinggi dan dukungan teknis 24/7.' if current_lang == 'id'
+              else 'Providing hosting, server, and domain services with high
+              performance and 24/7 technical support.' }}
+            </p>
+          </div>
+
+          <!-- Layanan 3 -->
+          <div
+            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
+          >
+            <div class="text-yellow-400 text-4xl mb-4">
+              <i class="fas fa-network-wired grow-on-hover"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">
+              {{ 'IT Infrastruktur' if current_lang == 'id' else 'IT
+              Infrastructure' }}
+            </h3>
+            <p class="text-sm">
+              {{ 'Solusi lengkap untuk infrastruktur jaringan, perangkat keras,
+              dan sistem komunikasi internal perusahaan.' if current_lang ==
+              'id' else 'Comprehensive solutions for network infrastructure,
+              hardware, and internal company communication systems.' }}
+            </p>
+          </div>
+
+          <!-- Layanan 4 -->
+          <div
+            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
+          >
+            <div class="text-yellow-400 text-4xl mb-4">
+              <i class="fas fa-user-shield pulse-on-hover"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">
+              {{ 'Konsultasi IT' if current_lang == 'id' else 'IT Consulting' }}
+            </h3>
+            <p class="text-sm">
+              {{ 'Memberikan arahan dan strategi terbaik dalam implementasi
+              teknologi informasi di berbagai sektor.' if current_lang == 'id'
+              else 'Providing guidance and the best strategies for implementing
+              information technology across various sectors.' }}
+            </p>
+          </div>
+
+          <!-- Layanan 5 -->
+          <div
+            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
+          >
+            <div class="text-yellow-400 text-4xl mb-4">
+              <div class="gear-container">
+                <i class="fas fa-cog gear-left pr-0.5"></i>
+                <i class="fas fa-cog gear-right pl-0.5"></i>
+              </div>
+            </div>
+            <h3 class="text-xl font-bold mb-2">
+              {{ 'Sistem Informasi' if current_lang == 'id' else 'Information
+              System' }}
+            </h3>
+            <p class="text-sm">
+              {{ 'Pengembangan sistem informasi untuk manajemen data, pelaporan,
+              dan otomatisasi proses bisnis.' if current_lang == 'id' else
+              'Development of information systems for data management,
+              reporting, and business process automation.' }}
+            </p>
+          </div>
+
+          <!-- Layanan 6 -->
+          <div
+            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
+          >
+            <div class="text-yellow-400 text-4xl mb-4">
+              <i class="fas fa-mobile-alt slide-up-on-hover"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">
+              {{ 'Aplikasi Mobile' if current_lang == 'id' else 'Mobile
+              Applications' }}
+            </h3>
+            <p class="text-sm">
+              {{ 'Pengembangan aplikasi Android/iOS yang responsif, ringan, dan
+              terintegrasi dengan sistem backend.' if current_lang == 'id' else
+              'Development of responsive, lightweight Android/iOS applications
+              integrated with backend systems.' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      class="py-12 {{ 'bg-gray-900 text-white' if current_theme == 'dark' else 'bg-gray-100 text-gray-900' }}"
+    >
+      <div
+        class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left"
+      >
+        <!-- Logo / Perusahaan -->
+        <div>
+          <h3 class="text-2xl font-bold mb-4 text-yellow-400">
+            CV. TOMA CAHAYA NUSANTARA
+          </h3>
+          <p class="text-sm text-gray-400">
+            {{ 'Solusi IT terpercaya dari Papua Selatan. Fokus pada pengembangan
+            aplikasi, server hosting, dan konsultasi digital.' if current_lang
+            == 'id' else 'Trusted IT solutions from South Papua. Focused on
+            application development, server hosting, and digital consulting.' }}
+          </p>
+        </div>
+
+        <!-- Navigasi -->
+        <div>
+          <h4 class="text-xl font-semibold mb-4">
+            {{ 'Layanan Kami' if current_lang == 'id' else 'Our Services' }}
+            Navigasi
+          </h4>
+          <ul
+            class="space-y-2 text-sm {{ 'text-gray-400' if current_theme == 'dark' else 'text-gray-700' }}"
+          >
+            <li>
+              <a
+                href="#home"
+                class="{{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900 hover:font-bold' }}"
+              >
+                {{ 'Beranda' if current_lang == 'id' else 'Home' }}
+              </a>
+            </li>
+            <li>
+              <a
+                href="#news"
+                class="{{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900 hover:font-bold' }}"
+              >
+                {{ 'Berita' if current_lang == 'id' else 'News' }}
+              </a>
+            </li>
+            <li>
+              <a
+                href="#about"
+                class="{{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900 hover:font-bold' }}"
+              >
+                {{ 'Tentang Kami' if current_lang == 'id' else 'About Us' }}</a
+              >
+            </li>
+            <li>
+              <a
+                href="#services"
+                class="{{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900 hover:font-bold' }}"
+              >
+                {{ 'Layanan' if current_lang == 'id' else 'Services' }}</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <!-- Sosial Media -->
+        <div>
+          <h4 class="text-xl font-semibold mb-4">
+            {{ 'Ikuti Kami' if current_lang == 'id' else 'Follow Us' }}
+          </h4>
+          <div class="flex justify-center md:justify-start gap-4 text-xl">
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              class="relative group {{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900' }}"
+            >
+              <i class="fab fa-facebook-f"></i>
+              <span
+                class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50"
+              >
+                {{ 'Kunjungi Facebook TOMA' if current_lang == 'id' else 'Visit
+                TOMA’s Facebook' }}
+              </span>
+            </a>
+            <a
+              href="https://www.instagram.com/id.toma?utm_source=ig_web_button_share_sheet&igsh=MW5sNzk3MG4wdXo5eA=="
+              target="_blank"
+              class="relative group {{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900' }}"
+            >
+              <i class="fab fa-instagram"></i>
+              <span
+                class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50"
+              >
+                {{ 'Kunjungi Instagram TOMA' if current_lang == 'id' else 'Visit
+                TOMA’s Instagram' }}
+              </span>
+            </a>
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              class="relative group {{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900' }}"
+            >
+              <i class="fab fa-linkedin-in"></i>
+              <span
+                class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50"
+              >
+                {{ 'Kunjungi LinkedIn TOMA' if current_lang == 'id' else 'Visit
+                TOMA’s LinkedIn' }}
+              </span>
+            </a>
+            <a
+              href="mailto:info@tomma.co"
+              class="relative group {{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900' }}"
+            >
+              <i class="fas fa-envelope"></i>
+              <span
+                class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50"
+              >
+                {{ 'Kirim pesan email ke toma@gmail.com' if current_lang == 'id'
+                else 'Send an email message to toma@gmail.com' }}
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dark Mode Toggle (Mobile) -->
+      <div class="fixed bottom-4 right-4 z-[9999] md:hidden" x-data>
+        <button
+          x-data
+          @click="$store.theme.toggle()"
+          class="w-14 h-14 flex justify-center items-center bg-gray-800 dark:bg-yellow-400 text-yellow-300 dark:text-gray-900 rounded-full shadow-lg transition hover:brightness-110 cursor-pointer"
+          aria-label="Toggle Dark Mode"
+        >
+          <template x-if="$store.theme.isDark">
+            <i class="fas fa-sun text-xl"></i>
+          </template>
+          <template x-if="!$store.theme.isDark">
+            <i class="fas fa-moon text-xl"></i>
+          </template>
+        </button>
+      </div>
+
+      <!-- Overlay Error -->
+      <div
+        id="overlay-error"
+        class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm items-center justify-center px-4"
+      >
+        <div
+          class="bg-white text-red-600 w-full max-w-md p-6 rounded-2xl shadow-2xl border border-red-200 animate-fade-in"
+        >
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">
+              {{ 'Terjadi Kesalahan' if current_lang == 'id' else 'An Error
+              Occurred' }}
+            </h2>
+            <button
+              onclick="closeError()"
+              class="text-red-500 text-3xl hover:text-red-700 transition cursor-pointer"
+            >
+              &times;
+            </button>
+          </div>
+          <p id="error-message" class="text-sm text-gray-700 mb-6">
+            {{ 'Pesan error muncul di sini' if current_lang == 'id' else 'Error
+            message appears here' }}
+          </p>
+          <button
+            onclick="closeError()"
+            class="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition duration-200 cursor-pointer"
+          >
+            {{ 'Tutup' if current_lang == 'id' else 'Close' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Flash Message -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        id="flash-message"
+        data-first-time="{{ 'true' if first_time_login else 'false' }}"
+        class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 flash-wrapper"
+      >
+        <div
+          class="w-full max-w-md p-6 rounded-2xl shadow-2xl border animate-fade-in {% if category in ['success', 'welcome'] %} bg-green-100 text-green-700 border-green-300 {% else %} bg-red-100 text-red-700 border-red-300 {% endif %}"
+        >
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">
+              {{ 'Notifikasi' if current_lang == 'id' else 'Notification' }}
+            </h2>
+            <button
+              onclick="closeFlashAndShowNotifBox(this)"
+              class="text-3xl hover:text-gray-700 transition cursor-pointer"
+            >
+              &times;
+            </button>
+          </div>
+          <p class="text-sm text-gray-700 mb-6">{{ message }}</p>
+          <button
+            onclick="closeFlashAndShowNotifBox(this)"
+            class="w-full py-2 px-4 {% if category in ['success', 'welcome'] %} bg-green-600 hover:bg-green-700 {% else %} bg-red-600 hover:bg-red-700 {% endif %} text-white font-medium rounded-lg transition duration-200 cursor-pointer"
+          >
+            {{ 'Tutup' if current_lang == 'id' else 'Close' }}
+          </button>
+        </div>
+      </div>
+      {% endfor %} {% endif %} {% endwith %}
+
+      <!-- Batas -->
+      <div
+        class="mt-10 border-t border-gray-700 pt-6 text-center text-sm text-gray-500"
+      >
+        &copy; 2025 SPARK Official. All rights reserved.
+      </div>
+    </footer>
+
+    <!-- Animation Script -->
+    {% include 'script_animation.html' %}
+
+    <script>
+      console.log("first_time_login: {{ first_time_login }}");
+      document.addEventListener("DOMContentLoaded", function () {
+        // === Smooth Scroll ===
+        $('a[href^="#"]').on("click", function (e) {
+          e.preventDefault();
+          const target = this.hash;
+          const $target = $(target);
+          $("html, body")
+            .stop()
+            .animate(
+              { scrollTop: $target.offset().top },
+              1300,
+              "easeInOutExpo"
+            );
+        });
+
+        // === Transparent Header on Scroll ===
+        $(window).on("scroll", function () {
+          const header = document.getElementById("main-header");
+          if (window.scrollY > 10) {
+            header.classList.remove("bg-opacity-100");
+            header.classList.add("bg-opacity-30");
+          } else {
+            header.classList.remove("bg-opacity-30");
+            header.classList.add("bg-opacity-100");
+          }
+        });
+
+        // === Flip Card Interaction ===
+        const cards = document.querySelectorAll(".card-inner");
+        cards.forEach((card) => {
+          card.addEventListener("click", function (e) {
+            cards.forEach((c) => {
+              if (c !== card) c.classList.remove("rotate-y-180");
+            });
+            card.classList.toggle("rotate-y-180");
+            e.stopPropagation();
+          });
+        });
+        const socialLinks = document.querySelectorAll(".card-inner a");
+        socialLinks.forEach((link) => {
+          link.addEventListener("click", function (e) {
+            e.stopPropagation();
+          });
+        });
+        document.addEventListener("click", function () {
+          cards.forEach((card) => {
+            card.classList.remove("rotate-y-180");
+          });
+        });
+
+        // === Slider Gambar Otomatis ===
+        const images = [
+          document.getElementById("img1"),
+          document.getElementById("img2"),
+          document.getElementById("img3"),
+        ];
+        const fadeOverlay = document.getElementById("colorFade");
+        let currentIndex = 0;
+        function showNextImage() {
+          fadeOverlay.classList.add("show");
+          setTimeout(() => {
+            images.forEach((img) => img.classList.remove("active"));
+            currentIndex = (currentIndex + 1) % images.length;
+            images[currentIndex].classList.add("active");
+            fadeOverlay.classList.remove("show");
+          }, 1000);
+        }
+        setInterval(showNextImage, 4000);
+
+        // === Validasi Form ===
+        const form = document.querySelector("form");
+        if (form) {
+          form.addEventListener("submit", function (e) {
+            const email = document.getElementById("email")?.value || "";
+            let nomor_hp = document.getElementById("nomor_hp")?.value || "";
+            const btn = document.getElementById("submitBtn");
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const hpRegex = /^(08\d{8,11}|\+628\d{7,10})$/;
+            const validPrefixes = [
+              "0811",
+              "0812",
+              "0813",
+              "0821",
+              "0822",
+              "0823",
+              "0851",
+              "0852",
+              "0853",
+              "0817",
+              "0818",
+              "0819",
+              "0857",
+              "0858",
+              "0896",
+              "0897",
+              "0898",
+              "0899",
+            ];
+
+            if (!emailRegex.test(email)) {
+              e.preventDefault();
+              showError("Email tidak valid!");
+              return;
+            }
+
+            if (nomor_hp.startsWith("+62")) {
+              nomor_hp = "0" + nomor_hp.slice(3);
+            }
+
+            if (!hpRegex.test(nomor_hp)) {
+              e.preventDefault();
+              showError(
+                "Nomor HP harus dimulai dengan 08 atau +628, panjang 10-13 digit!"
+              );
+              return;
+            }
+
+            const prefix = nomor_hp.substring(0, 4);
+            if (!validPrefixes.includes(prefix)) {
+              e.preventDefault();
+              showError(
+                "Prefix nomor HP tidak dikenal. Periksa kembali nomor Anda."
+              );
+              return;
+            }
+
+            if (/^(0+|08[0-9]{7}1234|08[0-9]{9}000)$/.test(nomor_hp)) {
+              e.preventDefault();
+              showError("Nomor HP tampaknya tidak valid!");
+              return;
+            }
+
+            if (btn) {
+              btn.disabled = true;
+              btn.innerText = "Mengirim...";
+            }
+          });
+        }
+
+        function showError(message) {
+          const overlay = document.getElementById("overlay-error");
+          const errorMsg = document.getElementById("error-message");
+
+          errorMsg.textContent = message;
+          overlay.classList.remove("hidden");
+          overlay.classList.add("flex");
+          document.body.classList.add("blurred", "overflow-hidden");
+        }
+
+        function closeError() {
+          const overlay = document.getElementById("overlay-error");
+
+          overlay.classList.remove("flex");
+          overlay.classList.add("hidden");
+          document.body.classList.remove("blurred", "overflow-hidden");
+        }
+
+        // Fungsi untuk menghapus semua notifikasi (konten system-tab)
+        function clearAllNotifications() {
+          const container = document.getElementById("system-tab");
+          if (container) {
+            container.innerHTML =
+              '<div class="text-sm text-gray-400 italic text-center py-2">Tidak ada notifikasi</div>';
+          }
+        }
+      });
+    </script>
+    <script>
+      window.isFirstTimeLogin = {{ 'true' if first_time_login else 'false' }};
+      const toggleButton = document.getElementById("notification-toggle");
+      const notifBox = document.getElementById("notification-box");
+
+      // Toggle show/hide box
+      toggleButton?.addEventListener("click", function (event) {
+        event.stopPropagation();
+        const isOpen = notifBox.classList.contains("opacity-100");
+
+        if (isOpen) {
+          notifBox.classList.remove("opacity-100", "pointer-events-auto", "scale-100", "translate-x-0");
+          notifBox.classList.add("opacity-0", "pointer-events-none", "scale-95", "translate-x-full");
+        } else {
+          notifBox.classList.remove("opacity-0", "pointer-events-none", "scale-95", "translate-x-full");
+          notifBox.classList.add("opacity-100", "pointer-events-auto", "scale-100", "translate-x-0");
+        }
+      });
+
+      // Klik di luar notif box → tutup
+      document.addEventListener("click", function (event) {
+        if (
+          notifBox &&
+          !notifBox.contains(event.target) &&
+          !toggleButton?.contains(event.target)
+        ) {
+          notifBox.classList.remove(
+            "opacity-100", "pointer-events-auto", "scale-100", "translate-x-0"
+          );
+          notifBox.classList.add(
+            "opacity-0", "pointer-events-none", "scale-95", "translate-x-full"
+          );
+        }
+      });
+
+      // Flash → tombol "Tutup" → tampil notifBox selama 6 detik
+      window.closeFlashAndShowNotifBox = function (element) {
+        const flashOverlay = element.closest(".flash-wrapper");
+
+        if (flashOverlay) flashOverlay.classList.add("hidden");
+
+        if (window.isFirstTimeLogin && notifBox) {
+          console.log("🚀 Login pertama kali, tampilkan notifBox selama 6 detik");
+
+          notifBox.classList.remove(
+            "opacity-100", "pointer-events-auto", "scale-100", "translate-x-0"
+          );
+          notifBox.classList.add(
+            "opacity-0", "pointer-events-none", "scale-95", "translate-x-full"
+          );
+          notifBox.style.transform = "none";
+          console.log("[DEBUG] notifBox.classList after show:", notifBox.classList);
+
+          setTimeout(() => {
+            notifBox.classList.remove(
+              "opacity-0", "pointer-events-none", "scale-95", "translate-x-full"
+            );
+            notifBox.classList.add(
+              "opacity-100", "pointer-events-auto", "scale-100", "translate-x-0"
+            );
+            fetch("/clear-first-login-flag", { method: "POST" });
+          }, 200);
+        } else {
+          console.log("ℹ️ Bukan login pertama → notifBox tidak muncul otomatis");
+        }
+      };
+    </script>
+  </body>
+</html>
