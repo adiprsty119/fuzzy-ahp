@@ -18,6 +18,7 @@ class Users(db.Model):
     reset_token = db.Column(db.String(255), nullable=True, default="")
     token_exp = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
     login_method = db.Column(db.String(100), nullable=False)
+    sidebar_state = db.Column(db.String(10), nullable=True, default='expanded')
 
 # Access to table notifications
 class Notification(db.Model):
@@ -26,3 +27,15 @@ class Notification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     is_read = db.Column(db.Boolean, default=False)
     message = db.Column(db.String(255))
+
+class Participants(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nama = db.Column(db.String(100))
+
+class Criteria(db.Model):
+    __tablename__ = 'tb_kriteria'
+    id_kriteria = db.Column(db.Integer, primary_key=True)
+    kriteria = db.Column(db.String(255), nullable=False)
+    bobot = db.Column(db.Float, nullable=False)
+    deskripsi = db.Column(db.Text, nullable=False)
+    jenis_kriteria = db.Column(db.String(255), nullable=False)

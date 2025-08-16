@@ -1,0 +1,235 @@
+.perspective {
+  perspective: 1000px;
+}
+
+.transform-style {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Animasi ikon gear berputar */
+@keyframes spin-clockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.gear-container {
+  position: relative;
+  display: inline-block;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.gear-left,
+.gear-right {
+  position: absolute;
+  font-size: 1.5rem;
+  color: #facc15; /* Tailwind yellow-400 */
+}
+
+.gear-left {
+  top: -0.3rem;
+  left: -0.6rem;
+}
+
+.gear-right {
+  top: 0.3rem;
+  left: 0.6rem;
+}
+
+/* Animasi ikon bergoyang kiri-kanan */
+@keyframes shake-icon {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+/* Animasi ikon naik-turun */
+@keyframes bounce-icon {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes grow-icon {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-icon {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up-icon {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Utilitas */
+.hover-parent:hover .gear-left {
+  animation: spin-clockwise 0.8s linear;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.hover-parent:hover .gear-right {
+  animation: spin-counter 0.8s linear;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.hover-parent:hover .shake-on-hover {
+  animation: shake-icon 0.6s ease-in-out infinite;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.hover-parent:hover .bounce-on-hover {
+  animation: bounce-icon 0.6s ease-in-out infinite;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.hover-parent:hover .grow-on-hover {
+  animation: grow-icon 0.6s ease-in-out;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.hover-parent:hover .pulse-on-hover {
+  animation: pulse-icon 0.6s ease-in-out;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.hover-parent:hover .slide-up-on-hover {
+  animation: slide-up-icon 0.6s ease-out;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+.image-wrapper {
+  position: relative;
+  width: 550px;
+  height: auto;
+  overflow: visible;
+}
+
+/* Ukuran untuk tablet */
+@media (max-width: 768px) {
+  .image-wrapper {
+    width: 400px;
+  }
+}
+
+/* Ukuran untuk HP */
+@media (max-width: 480px) {
+  .image-wrapper {
+    width: 300px;
+  }
+}
+
+.fade-img {
+  opacity: 0;
+  transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.fade-img.active {
+  opacity: 1;
+  position: relative;
+  z-index: 15;
+}
+
+.color-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #facc15, #ec4899, #6366f1);
+  opacity: 0;
+  z-index: 20;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+  mix-blend-mode: screen; /* Optional: agar lebih menyatu */
+}
+
+.color-fade.show {
+  opacity: 1;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}

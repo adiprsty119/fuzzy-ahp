@@ -3,7 +3,7 @@ from flask_session import Session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import create_app, db
-from app.models import Users, Notification
+from app.models import Users, Participants, Criteria, Notification
 from flask_mail import Mail, Message
 from twilio.rest import Client
 from authlib.integrations.flask_client import OAuth
@@ -15,6 +15,8 @@ from forms import LoginForm, RegisterForm
 from config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_login import LoginManager
+from flask_login import current_user, login_required
 import random, string
 import logging
 import secrets
@@ -178,7 +180,7 @@ def login():
             logging.info(f"User '{username}' berhasil login.")
             flash(f"Login berhasil! Selamat datang, {safe_username}.", "success")
             session['first_time_login'] = True
-            return redirect(url_for('index')) 
+            return redirect(url_for('admin_dashboard')) 
     return render_template('login.html', form=form)
 
 # Endpoint login with Google
@@ -236,7 +238,7 @@ def login_google_callback():
         print("✅ Session set:", session.get('user'))
         logging.info(f"User '{user.username}' berhasil login via Google.")
         flash(f"Login berhasil! Selamat datang, {escape(user.nama_lengkap)}.", "success")
-        return redirect(url_for('index'))
+        return redirect(url_for('admin_dashboard'))
     else:
         # Jika belum ada, arahkan ke konfirmasi registrasi
         session['pending_user'] = user_info
@@ -423,7 +425,7 @@ def register_google_callback():
         'level': new_user.level
     }
     flash("Registrasi berhasil! Selamat datang pengguna baru. Anda sekarang login untuk pertama kali.", "welcome")
-    return redirect(url_for('index'))
+    return redirect(url_for('admin_dashboard'))
 
 # Endpoint Find Account
 @app.route('/find_account/', methods=['GET', 'POST'])
@@ -655,6 +657,76 @@ def set_theme(theme):
 @app.context_processor
 def inject_theme():
     return dict(current_theme=session.get('theme', 'light'))
+
+@app.route('/save_sidebar_state', methods=['POST'])
+@login_required
+def save_sidebar_state():
+    data = request.get_json()
+    state = data.get('state')
+
+    if state not in ['expanded', 'collapsed']:
+        return jsonify({'status': 'error', 'message': 'Invalid state'}), 400
+
+    current_user.sidebar_state = state
+    db.session.commit()
+
+    return jsonify({'status': 'success', 'message': 'Sidebar state saved'})
+
+@app.route('/admin/dashboard')
+@login_required
+def admin_dashboard():
+    if 'username' not in session:
+        flash("Silakan login terlebih dahulu", "warning")
+        return redirect(url_for('login'))
+    
+    user = current_user
+    if not user or user.level != 'admin':
+        flash("Akses ditolak. Anda bukan admin!", "danger")
+        return redirect(url_for('index'))
+    
+    total_users = Users.query.count()
+    total_participants = Participants.query.count() if db.inspect(db.engine).has_table("participants") else 0
+    total_criteria = Criteria.query.count() if db.inspect(db.engine).has_table("criteria") else 0
+    total_notifications = Notification.query.count()
+
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    return render_template('dashboard_admin.html', sidebar_state=sidebar_state, user=user, total_users=total_users, total_participants=total_participants, total_criteria=total_criteria, total_notifications=total_notifications)
+
+@app.route('/admin/users')
+def admin_users():
+    ...
+    
+@app.route('/admin/manajemen_kegiatan')
+def admin_manajemen_kegiatan():
+    ...
+
+@app.route('/admin/kriteria')
+def admin_kriteria():
+    ...
+    
+@app.route('/admin/pembobotan_kriteria')
+def admin_pembobotan_kriteria():
+    ...
+
+@app.route('/admin/peserta')
+def admin_peserta():
+    ...
+    
+@app.route('/admin/hasil_seleksi')
+def admin_hasil_seleksi():
+    ...
+
+@app.route('/admin/notifikasi')
+def admin_notifikasi():
+    ...
+    
+@app.route('/admin/log_aktivitas')
+def admin_log_aktivitas():
+    ...
+
+@app.route('/admin/settings')
+def admin_settings():
+    ...
 
 @app.route('/logout/')
 def logout():

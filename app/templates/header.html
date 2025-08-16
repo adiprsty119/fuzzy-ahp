@@ -1,0 +1,451 @@
+<!-- Header -->
+<header
+  id="main-header"
+  class="fixed top-0 left-[15%] w-[85%] bg-opacity-100 backdrop-blur transition-all duration-300 shadow z-40 {{ 'bg-gray-900' if current_theme == 'dark' else 'bg-gray-100' }}"
+  x-data="{ sidebarOpen: true }"
+  @sidebar-toggled.window="
+    sidebarOpen = $event.detail;
+    $el.classList.toggle('left-[15%]', sidebarOpen);
+    $el.classList.toggle('w-[85%]', sidebarOpen);
+    $el.classList.toggle('left-[4%]', !sidebarOpen);
+    $el.classList.toggle('w-[96%]', !sidebarOpen);
+  "
+>
+  <div class="container mx-auto flex items-center justify-between py-6 px-6">
+    <div class="flex items-center space-x-2 gap-3.5">
+      <img
+        src="{{ url_for('static', filename='images/SPARK.png') }} "
+        alt="SPARK"
+        class="h-9 w-auto md:h-16"
+      />
+      <h1
+        class="text-2xl font-bold {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+      >
+        {{ 'Selamat Datang, ' if current_lang == 'id' else 'Welcome, ' }}{{
+        user.nama_lengkap }}
+      </h1>
+    </div>
+
+    <!-- Center: Search + Language (Mobile) -->
+    <div class="flex md:hidden items-center space-x-4">
+      <div class="relative w-56">
+        <input
+          type="text"
+          placeholder="{{ 'Cari...' if current_lang == 'id' else 'Search...' }}"
+          class="px-3 py-2 rounded-full text-sm w-full {{ 'bg-gray-700 text-white placeholder-gray-400 focus:ring-yellow-400' if current_theme == 'dark' else 'bg-gray-100 border text-black placeholder-gray-400 focus:ring-gray-900' }}"
+        />
+        <div
+          class="absolute inset-y-0 right-3 flex items-center pointer-events-none"
+        >
+          <i class="fas fa-search text-gray-400 text-sm"></i>
+        </div>
+      </div>
+
+      <!-- Language Selector -->
+      <div x-data="{ open: false }" class="relative">
+        <!-- Tombol Bahasa -->
+        <button
+          @click="open = !open"
+          class="bg-yellow-400 text-gray-900 font-semibold px-3 py-1.5 rounded-md hover:bg-yellow-300 transition text-sm flex items-center gap-1 cursor-pointer"
+        >
+          {{ 'ID' if current_lang == 'id' else 'EN' }}
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div
+          x-show="open"
+          @click.away="open = false"
+          x-transition
+          class="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-md z-50"
+        >
+          <a
+            href="{{ url_for('set_language', lang_code='id') }}"
+            class="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100"
+          >
+            Bahasa
+          </a>
+          <a
+            href="{{ url_for('set_language', lang_code='en') }}"
+            class="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-100"
+          >
+            English
+          </a>
+        </div>
+      </div>
+
+      <!-- Sign Up -->
+      <a
+        href="/login/"
+        class="flex items-center justify-center gap-1 text-yellow-400 hover:text-yellow-300 transition text-2xl"
+        title="{{ 'Masuk ke Akun' if current_lang == 'id' else 'Login' }}"
+      >
+        <i class="fas fa-user-plus"></i>
+      </a>
+
+      <!-- Notifikasi -->
+      {% if session.get('username') or session.get('user') %}
+      <button
+        title="{{ 'Notifikasi' if current_lang == 'id' else 'Notification' }}"
+        class="relative flex items-center justify-center text-yellow-400 hover:text-yellow-300 transition text-2xl cursor-pointer my-3"
+      >
+        <i class="fas fa-bell"></i>
+        <span
+          class="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center font-semibold"
+        >
+          {{ notification_count }}
+        </span>
+      </button>
+      {% endif %}
+
+      <!-- Hamburger Icon (Mobile Only) -->
+      <button
+        @click="open = !open"
+        class="md:hidden text-3xl focus:outline-none {{ 'text-white' if current_theme == 'dark' else 'text-gray-900' }}"
+        :aria-expanded="open.toString()"
+        aria-label="Toggle navigation menu"
+      >
+        <i
+          :class="open ? 'fa-solid fa-xmark cursor-pointer' : 'fa-solid fa-bars cursor-pointer'"
+        ></i>
+      </button>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <div class="hidden md:flex items-center space-x-6">
+      <!-- Search + Language (Desktop) -->
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="{{ 'Cari...' if current_lang == 'id' else 'Search...' }}"
+            class="pl-4 pr-10 py-2 rounded-full focus:outline-none focus:ring-2  {{ 'bg-gray-700 text-white placeholder-gray-400 focus:ring-yellow-400' if current_theme == 'dark' else 'bg-gray-100 border text-black placeholder-gray-400 focus:ring-gray-900' }}"
+          />
+          <div
+            class="absolute inset-y-0 right-3 flex items-center pointer-events-none"
+          >
+            <i
+              class="fas fa-search text-sm {{ 'text-gray-400' if current_theme == 'dark' else 'text-gray-800' }}"
+            ></i>
+          </div>
+        </div>
+
+        <!-- Language Selector -->
+        <div x-data="{ open: false }" class="relative">
+          <!-- Tombol Bahasa -->
+          <button
+            @click="open = !open"
+            class="bg-yellow-400 font-semibold px-3 py-1.5 rounded-md hover:bg-yellow-300 transition text-sm flex items-center gap-1 cursor-pointer {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+          >
+            {{ 'ID' if current_lang == 'id' else 'EN' }}
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            x-show="open"
+            @click.away="open = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-1"
+            class="absolute right-0 mt-2 w-28 border rounded-md shadow-md z-50 {{ 'bg-gray-900 border-gray-600' if current_theme == 'dark' else 'bg-white border-gray-200' }}"
+          >
+            <a
+              href="{{ url_for('set_language', lang_code='id') }}"
+              class="block px-4 py-2 text-sm {{ 'text-white hover:bg-gray-600' if current_theme == 'dark' else 'text-gray-700 hover:bg-yellow-100' }}"
+            >
+              Bahasa
+            </a>
+            <a
+              href="{{ url_for('set_language', lang_code='en') }}"
+              class="block px-4 py-2 text-sm {{ 'text-white hover:bg-gray-600' if current_theme == 'dark' else 'text-gray-700 hover:bg-yellow-100' }}"
+            >
+              English
+            </a>
+          </div>
+        </div>
+
+        <!-- Dark Mode Toggle -->
+        <button
+          x-data
+          @click="$store.theme.toggle()"
+          :title="$store.theme.isDark ? '{{ 'Beralih ke Mode Terang' if current_lang == 'id' else 'Switch to Light Mode' }}' : '{{ 'Beralih ke Mode Gelap' if current_lang == 'id' else 'Switch to Dark Mode' }}'"
+          class="relative w-[80px] flex justify-center items-center bg-gray-800 dark:bg-yellow-400 text-yellow-300 dark:text-gray-900 px-0.5 py-1.5 rounded-md text-sm font-semibold transition hover:brightness-110 cursor-pointer"
+        >
+          <template
+            x-if="$store.theme.isDark"
+            class="absolute inset-0 flex justify-center items-center transition-opacity duration-300"
+            x-transition:enter="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="opacity-100"
+            x-transition:leave-end="opacity-0"
+          >
+            <span class="text-white"
+              ><i class="fas fa-sun"></i>{{ 'Light' if current_lang == 'en' else
+              'Terang' }}</span
+            >
+          </template>
+          <template
+            x-if="!$store.theme.isDark"
+            class="absolute inset-0 flex justify-center items-center transition-opacity duration-300"
+            x-transition:enter="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="opacity-100"
+            x-transition:leave-end="opacity-0"
+          >
+            <span
+              ><i class="fas fa-moon"></i> {{ 'Dark' if current_lang == 'en'
+              else 'Gelap' }}</span
+            >
+          </template>
+        </button>
+
+        <!-- Notifikasi -->
+        {% if session.get('username') or session.get('user') %}
+        <button
+          id="notification-toggle"
+          title="{{ 'Notifikasi' if current_lang == 'id' else 'Notification' }}"
+          class="relative flex items-center justify-center text-yellow-400 hover:text-yellow-300 transition text-2xl cursor-pointer my-3"
+        >
+          <i class="fas fa-bell"></i>
+          <span
+            class="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center font-semibold"
+          >
+            {{ notification_count }}
+          </span>
+        </button>
+        {% endif %}
+
+        <!-- Notification Box -->
+        <div
+          id="notification-box"
+          class="fixed top-28 -right-2 translate-x-full shadow-lg border rounded-xl z-[9999] w-80 h-lvh md:w-96 transition-all duration-500 ease-in-out opacity-0 pointer-events-none scale-95 {{ 'bg-gray-800 border-gray-600' if current_theme == 'dark' else 'bg-white border-gray-400' }}"
+        >
+          <div class="border-b px-4 py-3">
+            <h2
+              class="text-lg text-center font-bold relative {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+            >
+              <span
+                class="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-bounce"
+                >1</span
+              >
+              {{ 'KOTAK MASUK' if current_lang == 'id' else 'INBOX' }}
+            </h2>
+          </div>
+
+          <!-- Tab Selector -->
+          <div
+            class="flex border-b text-sm font-medium {{ 'text-white' if current_theme == 'dark' else 'text-gray-500' }}"
+          >
+            <button
+              id="tab-system"
+              class="w-1/2 py-2 text-center border-b-2 cursor-pointer {{ 'border-white hover:text-white' if current_theme == 'dark' else 'border-black hover:text-black' }}"
+              onclick="switchTab('system')"
+            >
+              {{ 'Notifikasi Sistem' if current_lang == 'id' else 'System
+              Notification' }}
+            </button>
+            <button
+              id="tab-interaction"
+              class="w-1/2 py-2 text-center border-b-2 border-transparent cursor-pointer {{ 'hover:text-white' if current_theme == 'dark' else 'hover:text-black' }}"
+              onclick="switchTab('interaction')"
+            >
+              {{ 'Interaksi' if current_lang == 'id' else 'Interaction' }}
+            </button>
+          </div>
+
+          <button
+            onclick="clearAllNotifications()"
+            class="px-4 py-2 text-right text-xs text-red-500 hover:text-red-700 hover:font-bold cursor-pointer w-full"
+          >
+            {{ 'Hapus Semua' if current_lang == 'id' else 'Clear All' }}
+          </button>
+
+          <!-- Message List Container -->
+          <div class="max-h-[400px] overflow-y-auto">
+            <div id="system-tab" class="space-y-3 p-4">
+              <!-- Card 1 -->
+              <div
+                class="border rounded-lg p-3 shadow-sm hover:shadow-md transition {{ 'hover:bg-gray-800' if current_theme == 'dark' else 'border-gray-200 hover:bg-gray-50' }}"
+              >
+                <div class="flex items-start justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      class="fas fa-exclamation-circle text-yellow-400 mr-2"
+                    ></i>
+                    <span class="text-sm font-semibold"
+                      >{{ 'Notifikasi Sistem' if current_lang == 'id' else
+                      'System Notification' }}</span
+                    >
+                    <span
+                      class="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+                    ></span>
+                  </div>
+                  <span class="text-xs text-gray-400 whitespace-nowrap"
+                    >{{ '14 jam lalu' if current_lang == 'id' else '14 hours
+                    ago' }}</span
+                  >
+                </div>
+                <h4
+                  class="mt-2 font-bold text-sm {{ 'text-white' if current_theme == 'dark' else 'text-gray-900' }}"
+                >
+                  {{ '🎉 Liburan Seru Dimulai!' if current_lang == 'id' else '🎉
+                  The Fun Holiday Begins!' }}
+                </h4>
+                <p
+                  class="text-sm pt-2.5 {{ 'text-gray-300' if current_theme == 'dark' else 'text-gray-600' }}"
+                >
+                  {{ 'Ajukan permintaan minimal 2 layanan pembuatan aplikasi
+                  kami dan dapatkan diskon menarik untuk permintaan ke-3 hingga
+                  40%' if current_lang == 'id' else 'Submit requests for at
+                  least 2 of our application development services and get up to
+                  40% off on your 3rd request!' }}
+                </p>
+                <a
+                  href="#"
+                  class="mt-2 inline-block text-sm text-blue-600 hover:underline"
+                >
+                  {{ 'Pelajari selengkapnya' if current_lang == 'id' else 'Learn
+                  more' }}</a
+                >
+              </div>
+
+              <!-- Tambah card lain di sini -->
+            </div>
+
+            <!-- Tab: Interaksi -->
+            <div id="interaction-tab" class="hidden p-4 space-y-3">
+              <div class="text-sm text-gray-600 italic">
+                {{ 'Belum ada interaksi baru' if current_lang == 'id' else 'No
+                recent interactions' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if session.get('username') or session.get('user') %}
+        <!-- Profil Icon (setelah login) -->
+        <div x-data="{ open: false }" class="relative group">
+          <!-- Tombol Gambar Profil -->
+          <button
+            @click="open = !open"
+            :aria-expanded="open.toString()"
+            aria-haspopup="true"
+            class="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition text-sm focus:outline-none cursor-pointer"
+            title="{{ 'Akun' if current_lang == 'id' else
+                    'Account' }}"
+          >
+            <img
+              src="{% if profile_picture and profile_picture.startswith('http') %}{{ profile_picture }}{% else %}{{ url_for('static', filename=profile_picture or 'images/profil-default.jpg') }}{% endif %}"
+              alt="Foto Profil"
+              class="w-9 h-9 rounded-full border border-gray-300 object-cover"
+            />
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            x-show="open"
+            @click.away="open = false"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-1"
+            class="absolute -right-[30] mt-2 w-36 border rounded-md shadow-md z-50 {{ 'bg-gray-900 border-gray-600' if current_theme == 'dark' else 'bg-white border-gray-200' }}"
+          >
+            <a
+              href="/settings/"
+              class="block px-4 py-2 text-sm {{ 'text-white hover:bg-gray-600' if current_theme == 'dark' else 'text-gray-700 hover:bg-yellow-100' }}"
+            >
+              <i
+                class="fas fa-cog mr-2 {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+              ></i>
+              {{ 'Pengaturan' if current_lang == 'id' else 'Settings' }}
+            </a>
+            <a
+              href="/logout/"
+              class="block px-4 py-2 text-sm text-red-600 {{ 'hover:bg-gray-600' if current_theme == 'dark' else 'hover:bg-yellow-100' }}"
+            >
+              <i class="fas fa-sign-out-alt mr-2 text-red-500"></i>
+              {{ 'Keluar' if current_lang == 'id' else 'Logout' }}
+            </a>
+          </div>
+        </div>
+        {% else %}
+        <!-- Link Login System (sebelum login) -->
+        <a
+          href="/login/"
+          class="flex items-center justify-center gap-1 text-yellow-400 hover:text-yellow-300 transition text-2xl"
+          title="{{ 'Masuk ke Akun' if current_lang == 'id' else 'Login' }}"
+        >
+          <i class="fas fa-user-plus"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Menu -->
+  <div
+    x-show="open"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-75"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    class="md:hidden px-6 pb-8 space-y-2 flex flex-col items-start text-start gap-2.5 {{ 'bg-gray-900' if current_theme == 'dark' else 'bg-gray-100' }}"
+  >
+    <hr class="self-stretch border-gray-700 mb-6" />
+    <a
+      href="#home"
+      @click="open = false"
+      class="hover:text-yellow-400 text-xl flex items-center gap-3"
+    >
+      <i class="fas fa-house"></i>
+      {{ 'Beranda' if current_lang == 'id' else 'Home' }}
+    </a>
+    <a
+      href="#news"
+      @click="open = false"
+      class="hover:text-yellow-400 text-xl flex items-center gap-3"
+    >
+      <i class="fas fa-newspaper"></i>
+      {{ 'Berita' if current_lang == 'id' else 'News' }}
+    </a>
+    <a
+      href="#about"
+      @click="open = false"
+      class="hover:text-yellow-400 text-xl flex items-center gap-3"
+    >
+      <i class="fas fa-circle-info"></i>
+      {{ 'Tentang Kami' if current_lang == 'id' else 'About Us' }}
+    </a>
+
+    <a
+      href="#services"
+      @click="open = false"
+      class="hover:text-yellow-400 text-xl flex items-center gap-3"
+    >
+      <i class="fas fa-concierge-bell"></i>
+      {{ 'Layanan' if current_lang == 'id' else 'Services' }}
+    </a>
+  </div>
+</header>

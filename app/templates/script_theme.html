@@ -1,0 +1,35 @@
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("theme", {
+      isDark: {{ 'true' if current_theme == 'dark' else 'false' }},
+
+      init() {
+        const stored = localStorage.getItem("theme");
+        this.isDark = stored ? (stored === "dark") : {{ 'true' if current_theme == 'dark' else 'false' }};
+        document.documentElement.classList.toggle("dark", this.isDark);
+        localStorage.setItem("theme", this.isDark ? "dark" : "light");
+      },
+      toggle() {
+        this.isDark = !this.isDark;
+        const themeValue = this.isDark ? "dark" : "light";
+        document.documentElement.classList.remove("dark", "light");
+        document.documentElement.classList.add(themeValue);
+        localStorage.setItem("theme", themeValue);
+        fetch(`/set-theme/${themeValue}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content
+          }
+        }).then(() => {
+          location.reload();
+        });
+      }
+    });
+  });
+</script>
+{% with flags = get_flashed_messages(category_filter=['first_time_flag']) %}
+<script>
+  window.isFirstTimeLogin = {{ 'true' if 'first_time_login' in flags else 'false' }};
+</script>
+{% endwith %}

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <!-- Sidebar -->
+      {% include 'sidebar.html' %}
+
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Top Navbar -->
+        {% include 'header.html' %}
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-y-auto pt-28 h-full ml-[15%]"
+          x-data="{ sidebarOpen: true }"
+          @sidebar-toggled.window="
+            sidebarOpen = $event.detail;
+            $el.classList.toggle('ml-[15%]', sidebarOpen);
+            $el.classList.toggle('ml-[4%]', !sidebarOpen);
+          "
+        >
+          <section
+            class="flex items-center justify-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+          >
+            <div class="container mx-auto p-6">
+              <h1
+                class="text-3xl font-bold mb-6 {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+              >
+                {{ 'Dashboard Admin' if current_lang == 'id' else 'Admin
+                Dashboard' }}
+              </h1>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div
+                  class="rounded-xl shadow p-4 {{ 'bg-gray-900 text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+                >
+                  <h2 class="text-lg font-semibold">
+                    {{ 'Total Pengguna' if current_lang == 'id' else 'Total
+                    Users' }}
+                  </h2>
+                  <p class="text-2xl font-bold text-blue-600">
+                    {{ total_users }}
+                  </p>
+                </div>
+                <div
+                  class="rounded-xl shadow p-4 {{ 'bg-gray-900 text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+                >
+                  <h2 class="text-lg font-semibold">
+                    {{ 'Total Peserta' if current_lang == 'id' else 'Total
+                    Participants' }}
+                  </h2>
+                  <p class="text-2xl font-bold text-green-600">
+                    {{ total_participants }}
+                  </p>
+                </div>
+                <div
+                  class="rounded-xl shadow p-4 {{ 'bg-gray-900 text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+                >
+                  <h2 class="text-lg font-semibold">
+                    {{ 'Total Kriteria' if current_lang == 'id' else 'Total
+                    Criteria' }}
+                  </h2>
+                  <p class="text-2xl font-bold text-purple-600">
+                    {{ total_criteria }}
+                  </p>
+                </div>
+                <div
+                  class="rounded-xl shadow p-4 {{ 'bg-gray-900 text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+                >
+                  <h2 class="text-lg font-semibold">
+                    {{ 'Total Notifikasi' if current_lang == 'id' else 'Total
+                    Notifications' }}
+                  </h2>
+                  <p class="text-2xl font-bold text-red-600">
+                    {{ total_notifications }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-10">
+                <h3
+                  class="text-xl font-bold mb-2 {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+                >
+                  {{ 'Selamat datang,' if current_lang == 'id' else 'Welcome,'
+                  }} {{ user.nama_lengkap }}
+                </h3>
+                <p
+                  class="{{ 'text-gray-200' if current_theme == 'dark' else 'text-gray-600' }}"
+                >
+                  {{ 'Gunakan dashboard ini untuk memantau dan mengelola data
+                  sistem pendukung keputusan seleksi kegiatan Pramuka.' if
+                  current_lang == 'id' else 'Use this dashboard to monitor and
+                  manage data for the decision support system in Scout activity
+                  selection.' }}
+                </p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Animation Script -->
+    {% include 'script_animation.html' %}
+
+    <!-- <script>
+      const initialSidebarState =
+        "{{ current_user.sidebar_state or 'expanded' }}";
+    </script>
+
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+
+    
+    <script>
+      function sidebarState() {
+        return {
+          isCollapsed: initialSidebarState === "collapsed",
+          toggleSidebar() {
+            this.isCollapsed = !this.isCollapsed;
+            saveSidebarState(this.isCollapsed ? "collapsed" : "expanded");
+          },
+        };
+      }
+    </script> -->
+  </body>
+</html>
