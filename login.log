@@ -3183,3 +3183,88 @@
 2025-08-16 22:11:52,767 INFO:127.0.0.1 - - [16/Aug/2025 22:11:52] "[36mGET /login/?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
 2025-08-16 22:11:52,823 INFO:127.0.0.1 - - [16/Aug/2025 22:11:52] "[36mGET /login/?__debugger__=yes&cmd=resource&f=console.png&s=mfsMOWciQE93clW7mfqa HTTP/1.1[0m" 304 -
 2025-08-16 22:19:31,542 INFO: * Detected change in 'C:\\Users\\ACER\\Downloads\\fuzzy-ahp\\run.py', reloading
+2025-09-15 14:59:38,523 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-15 14:59:38,524 INFO:[33mPress CTRL+C to quit[0m
+2025-09-15 14:59:38,564 INFO: * Restarting with stat
+2025-09-15 14:59:40,561 WARNING: * Debugger is active!
+2025-09-15 14:59:40,565 INFO: * Debugger PIN: 112-281-680
+2025-09-15 14:59:59,843 INFO:127.0.0.1 - - [15/Sep/2025 14:59:59] "GET / HTTP/1.1" 200 -
+2025-09-15 14:59:59,982 INFO:127.0.0.1 - - [15/Sep/2025 14:59:59] "[33mGET /static/images/ilustrasi.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:00,011 INFO:127.0.0.1 - - [15/Sep/2025 15:00:00] "[33mGET /static/images/ilustrasi-2.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:00,061 INFO:127.0.0.1 - - [15/Sep/2025 15:00:00] "[33mGET /static/images/ilustrasi-3.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:00,102 INFO:127.0.0.1 - - [15/Sep/2025 15:00:00] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2025-09-15 15:00:01,372 INFO:127.0.0.1 - - [15/Sep/2025 15:00:01] "GET /static/css/output.css HTTP/1.1" 200 -
+2025-09-15 15:00:01,422 INFO:127.0.0.1 - - [15/Sep/2025 15:00:01] "GET /static/css/style.css HTTP/1.1" 200 -
+2025-09-15 15:00:01,430 INFO:127.0.0.1 - - [15/Sep/2025 15:00:01] "GET /static/images/SPARK.png HTTP/1.1" 200 -
+2025-09-15 15:00:01,463 INFO:127.0.0.1 - - [15/Sep/2025 15:00:01] "GET /static/js/jquery.min.js HTTP/1.1" 200 -
+2025-09-15 15:00:01,481 INFO:127.0.0.1 - - [15/Sep/2025 15:00:01] "GET /static/js/jquery.easing.min.js HTTP/1.1" 200 -
+2025-09-15 15:00:01,487 INFO:127.0.0.1 - - [15/Sep/2025 15:00:01] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2025-09-15 15:00:01,492 INFO:127.0.0.1 - - [15/Sep/2025 15:00:01] "GET /static/js/wow.js HTTP/1.1" 200 -
+2025-09-15 15:00:03,695 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[35m[1mPOST /set-theme/light HTTP/1.1[0m" 204 -
+2025-09-15 15:00:03,816 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "GET / HTTP/1.1" 200 -
+2025-09-15 15:00:03,918 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:03,930 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:03,930 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[33mGET /static/images/ilustrasi.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:03,934 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[36mGET /static/images/SPARK.png HTTP/1.1[0m" 304 -
+2025-09-15 15:00:03,974 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[36mGET /static/js/jquery.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:03,987 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[33mGET /static/images/ilustrasi-2.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:03,991 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2025-09-15 15:00:03,992 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[33mGET /static/images/ilustrasi-3.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:03,996 INFO:127.0.0.1 - - [15/Sep/2025 15:00:03] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:04,005 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:04,611 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[35m[1mPOST /set-theme/dark HTTP/1.1[0m" 204 -
+2025-09-15 15:00:04,740 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "GET / HTTP/1.1" 200 -
+2025-09-15 15:00:04,848 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:04,866 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[36mGET /static/images/SPARK.png HTTP/1.1[0m" 304 -
+2025-09-15 15:00:04,868 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:04,870 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[33mGET /static/images/ilustrasi.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:04,943 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[33mGET /static/images/ilustrasi-3.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:04,944 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[33mGET /static/images/ilustrasi-2.png HTTP/1.1[0m" 404 -
+2025-09-15 15:00:04,946 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[36mGET /static/js/jquery.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:04,953 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2025-09-15 15:00:04,961 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:04,977 INFO:127.0.0.1 - - [15/Sep/2025 15:00:04] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:05,994 INFO:127.0.0.1 - - [15/Sep/2025 15:00:05] "GET /login/ HTTP/1.1" 200 -
+2025-09-15 15:00:06,078 INFO:127.0.0.1 - - [15/Sep/2025 15:00:06] "GET /static/js/login.js HTTP/1.1" 200 -
+2025-09-15 15:00:06,079 INFO:127.0.0.1 - - [15/Sep/2025 15:00:06] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:11,362 INFO:127.0.0.1 - - [15/Sep/2025 15:00:11] "[32mPOST /login HTTP/1.1[0m" 308 -
+2025-09-15 15:00:12,800 INFO:User 'andihar' berhasil login sebagai admin.
+2025-09-15 15:00:12,813 INFO:127.0.0.1 - - [15/Sep/2025 15:00:12] "[32mPOST /login/ HTTP/1.1[0m" 302 -
+2025-09-15 15:00:13,150 INFO:127.0.0.1 - - [15/Sep/2025 15:00:13] "GET /admin/dashboard HTTP/1.1" 200 -
+2025-09-15 15:00:13,238 INFO:127.0.0.1 - - [15/Sep/2025 15:00:13] "[36mGET /static/images/SPARK.png HTTP/1.1[0m" 304 -
+2025-09-15 15:00:13,240 INFO:127.0.0.1 - - [15/Sep/2025 15:00:13] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:13,269 INFO:127.0.0.1 - - [15/Sep/2025 15:00:13] "GET /static/images/profil-default.jpg HTTP/1.1" 200 -
+2025-09-15 15:00:13,277 INFO:127.0.0.1 - - [15/Sep/2025 15:00:13] "[36mGET /static/js/jquery.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:13,281 INFO:127.0.0.1 - - [15/Sep/2025 15:00:13] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:13,283 INFO:127.0.0.1 - - [15/Sep/2025 15:00:13] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:17,591 INFO:127.0.0.1 - - [15/Sep/2025 15:00:17] "GET /admin/users HTTP/1.1" 200 -
+2025-09-15 15:00:17,675 INFO:127.0.0.1 - - [15/Sep/2025 15:00:17] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:17,678 INFO:127.0.0.1 - - [15/Sep/2025 15:00:17] "[36mGET /static/images/profil-default.jpg HTTP/1.1[0m" 304 -
+2025-09-15 15:00:17,680 INFO:127.0.0.1 - - [15/Sep/2025 15:00:17] "[36mGET /static/images/SPARK.png HTTP/1.1[0m" 304 -
+2025-09-15 15:00:17,710 INFO:127.0.0.1 - - [15/Sep/2025 15:00:17] "[36mGET /static/js/jquery.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:17,713 INFO:127.0.0.1 - - [15/Sep/2025 15:00:17] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:17,721 INFO:127.0.0.1 - - [15/Sep/2025 15:00:17] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:19,764 INFO:127.0.0.1 - - [15/Sep/2025 15:00:19] "GET /admin/manajemen_kegiatan HTTP/1.1" 200 -
+2025-09-15 15:00:19,853 INFO:127.0.0.1 - - [15/Sep/2025 15:00:19] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:00:19,856 INFO:127.0.0.1 - - [15/Sep/2025 15:00:19] "[36mGET /static/images/SPARK.png HTTP/1.1[0m" 304 -
+2025-09-15 15:00:19,859 INFO:127.0.0.1 - - [15/Sep/2025 15:00:19] "[36mGET /static/images/profil-default.jpg HTTP/1.1[0m" 304 -
+2025-09-15 15:00:19,894 INFO:127.0.0.1 - - [15/Sep/2025 15:00:19] "[36mGET /static/js/jquery.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:19,898 INFO:127.0.0.1 - - [15/Sep/2025 15:00:19] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:19,899 INFO:127.0.0.1 - - [15/Sep/2025 15:00:19] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:00:21,746 INFO:127.0.0.1 - - [15/Sep/2025 15:00:21] "POST /save_sidebar_state HTTP/1.1" 200 -
+2025-09-15 15:00:23,295 INFO:127.0.0.1 - - [15/Sep/2025 15:00:23] "POST /save_sidebar_state HTTP/1.1" 200 -
+2025-09-15 15:01:25,457 INFO:127.0.0.1 - - [15/Sep/2025 15:01:25] "GET /admin/settings HTTP/1.1" 200 -
+2025-09-15 15:01:25,537 INFO:127.0.0.1 - - [15/Sep/2025 15:01:25] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:01:25,539 INFO:127.0.0.1 - - [15/Sep/2025 15:01:25] "[36mGET /static/images/SPARK.png HTTP/1.1[0m" 304 -
+2025-09-15 15:01:25,547 INFO:127.0.0.1 - - [15/Sep/2025 15:01:25] "[36mGET /static/images/profil-default.jpg HTTP/1.1[0m" 304 -
+2025-09-15 15:01:25,572 INFO:127.0.0.1 - - [15/Sep/2025 15:01:25] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:01:25,574 INFO:127.0.0.1 - - [15/Sep/2025 15:01:25] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -
+2025-09-15 15:01:25,578 INFO:127.0.0.1 - - [15/Sep/2025 15:01:25] "[36mGET /static/js/jquery.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:01:27,727 INFO:127.0.0.1 - - [15/Sep/2025 15:01:27] "GET /admin/log_aktivitas HTTP/1.1" 200 -
+2025-09-15 15:01:27,803 INFO:127.0.0.1 - - [15/Sep/2025 15:01:27] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -
+2025-09-15 15:01:27,807 INFO:127.0.0.1 - - [15/Sep/2025 15:01:27] "[36mGET /static/images/SPARK.png HTTP/1.1[0m" 304 -
+2025-09-15 15:01:27,810 INFO:127.0.0.1 - - [15/Sep/2025 15:01:27] "[36mGET /static/images/profil-default.jpg HTTP/1.1[0m" 304 -
+2025-09-15 15:01:27,842 INFO:127.0.0.1 - - [15/Sep/2025 15:01:27] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:01:27,843 INFO:127.0.0.1 - - [15/Sep/2025 15:01:27] "[36mGET /static/js/jquery.min.js HTTP/1.1[0m" 304 -
+2025-09-15 15:01:27,847 INFO:127.0.0.1 - - [15/Sep/2025 15:01:27] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -

@@ -1,0 +1,102 @@
+<!-- Notification Box -->
+<div
+  id="notification-box"
+  class="fixed top-20 -right-2 translate-x-full shadow-lg border rounded-xl z-[9999] w-80 h-screen md:w-96 transition-all duration-500 ease-in-out opacity-0 pointer-events-none scale-95 {{ 'bg-gray-800 border-gray-600' if current_theme == 'dark' else 'bg-white border-gray-400' }}"
+>
+  <div class="border-b px-4 py-3">
+    <h2
+      class="text-lg text-center font-bold relative {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+    >
+      <span
+        class="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-bounce"
+        >1</span
+      >
+      {{ 'KOTAK MASUK' if current_lang == 'id' else 'INBOX' }}
+    </h2>
+  </div>
+
+  <!-- Tab Selector -->
+  <div
+    class="flex border-b text-sm font-medium {{ 'text-white' if current_theme == 'dark' else 'text-gray-500' }}"
+  >
+    <button
+      id="tab-system"
+      class="w-1/2 py-2 text-center border-b-2 cursor-pointer {{ 'border-white hover:text-white' if current_theme == 'dark' else 'border-black hover:text-black' }}"
+      onclick="switchTab('system')"
+    >
+      {{ 'Notifikasi Sistem' if current_lang == 'id' else 'System Notification'
+      }}
+    </button>
+    <button
+      id="tab-interaction"
+      class="w-1/2 py-2 text-center border-b-2 border-transparent cursor-pointer {{ 'hover:text-white' if current_theme == 'dark' else 'hover:text-black' }}"
+      onclick="switchTab('interaction')"
+    >
+      {{ 'Interaksi' if current_lang == 'id' else 'Interaction' }}
+    </button>
+  </div>
+
+  <button
+    onclick="clearAllNotifications()"
+    class="px-4 py-2 text-right text-xs text-red-500 hover:text-red-700 hover:font-bold cursor-pointer w-full"
+  >
+    {{ 'Hapus Semua' if current_lang == 'id' else 'Clear All' }}
+  </button>
+
+  <!-- Message List Container -->
+  <div class="max-h-[400px] overflow-y-auto">
+    <div id="system-tab" class="space-y-3 p-4">
+      <!-- Card 1 -->
+      <div
+        class="border rounded-lg p-3 shadow-sm hover:shadow-md transition {{ 'hover:bg-gray-800' if current_theme == 'dark' else 'border-gray-200 hover:bg-gray-50' }}"
+      >
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-exclamation-circle text-yellow-400 mr-2"></i>
+            <span class="text-sm font-semibold"
+              >{{ 'Notifikasi Sistem' if current_lang == 'id' else 'System
+              Notification' }}</span
+            >
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+          </div>
+          <span class="text-xs text-gray-400 whitespace-nowrap"
+            >{{ '14 jam lalu' if current_lang == 'id' else '14 hours ago'
+            }}</span
+          >
+        </div>
+        <h4
+          class="mt-2 font-bold text-sm {{ 'text-white' if current_theme == 'dark' else 'text-gray-900' }}"
+        >
+          {{ '🎉 Liburan Seru Dimulai!' if current_lang == 'id' else '🎉 The Fun
+          Holiday Begins!' }}
+        </h4>
+        <p
+          class="text-sm pt-2.5 {{ 'text-gray-300' if current_theme == 'dark' else 'text-gray-600' }}"
+        >
+          {{ 'Ajukan permintaan minimal 2 layanan pembuatan aplikasi kami dan
+          dapatkan diskon menarik untuk permintaan ke-3 hingga 40%' if
+          current_lang == 'id' else 'Submit requests for at least 2 of our
+          application development services and get up to 40% off on your 3rd
+          request!' }}
+        </p>
+        <a
+          href="#"
+          class="mt-2 inline-block text-sm text-blue-600 hover:underline"
+        >
+          {{ 'Pelajari selengkapnya' if current_lang == 'id' else 'Learn more'
+          }}</a
+        >
+      </div>
+
+      <!-- Tambah card lain di sini -->
+    </div>
+
+    <!-- Tab: Interaksi -->
+    <div id="interaction-tab" class="hidden p-4 space-y-3">
+      <div class="text-sm text-gray-600 italic">
+        {{ 'Belum ada interaksi baru' if current_lang == 'id' else 'No recent
+        interactions' }}
+      </div>
+    </div>
+  </div>
+</div>

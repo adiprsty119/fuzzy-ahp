@@ -1,0 +1,21 @@
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.store("sidebar", {
+      open: {{ 'false' if sidebar_state == 'collapsed' else 'true' }},
+
+      toggle() {
+        this.open = !this.open;
+
+        // Simpan ke database lewat fetch
+        fetch("/save_sidebar_state", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ state: this.open ? "expanded" : "collapsed" })
+        }).catch(err => console.error("Gagal simpan sidebar:", err));
+      }
+    });
+  });
+</script>

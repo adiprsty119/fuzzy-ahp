@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Script Sidebar -->
+    {% include "script_sidebar.html" %}
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false, openDetail: false, selectedPeserta: null }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <!-- Sidebar -->
+      {% include 'sidebar.html' %}
+
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Top Navbar -->
+        {% include 'header.html' %}
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-y-auto pt-28 h-full transition-all duration-300"
+          :class="Alpine.store('sidebar').open ? 'ml-[15%]' : 'ml-[1%]'"
+        >
+          <section
+            class="flex flex-col gap-6 justify-start items-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+          >
+            <!-- Notification Box -->
+            {% include 'notification_box.html' %}
+
+            <!-- Content -->
+            <div class="container mx-auto p-6 w-full">
+              <h1 class="text-2xl font-bold mb-4">
+                {{ 'Hasil Seleksi' if current_lang == 'id' else 'Selection
+                Results' }}
+              </h1>
+
+              <!-- Filter & Search -->
+              <div
+                class="flex flex-wrap justify-between items-center gap-4 mb-6"
+              >
+                <div class="flex gap-2">
+                  <select class="px-4 py-2 rounded-lg border shadow">
+                    <option>
+                      {{ 'Semua Tahap' if current_lang == 'id' else 'All Stages'
+                      }}
+                    </option>
+                    <option>Tahap 1</option>
+                    <option>Tahap 2</option>
+                    <option>Final</option>
+                  </select>
+                  <select class="px-4 py-2 rounded-lg border shadow">
+                    <option>
+                      {{ 'Semua Status' if current_lang == 'id' else 'All
+                      Status' }}
+                    </option>
+                    <option>Lolos</option>
+                    <option>Tidak Lolos</option>
+                  </select>
+                </div>
+                <input
+                  type="text"
+                  placeholder="{{ 'Cari peserta...' if current_lang == 'id' else 'Search participant...' }}"
+                  class="px-4 py-2 rounded-lg border shadow w-64"
+                />
+              </div>
+
+              <!-- Ranking Table -->
+              <div
+                class="overflow-x-auto bg-white shadow-lg rounded-xl {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+              >
+                <table class="w-full text-sm text-left">
+                  <thead
+                    class="{{ 'bg-gray-200 dark:bg-gray-700' if current_theme == 'dark' else 'bg-gray-200 dark:bg-gray-100' }}"
+                  >
+                    <tr>
+                      <th class="px-4 py-2">No.</th>
+                      <th class="px-4 py-2">
+                        {{ 'Nama' if current_lang == 'id' else 'Name' }}
+                      </th>
+                      <th class="px-4 py-2">Gudep</th>
+                      <th class="px-4 py-2">Skor</th>
+                      <th class="px-4 py-2">
+                        {{ 'Status' if current_lang == 'id' else 'Status' }}
+                      </th>
+                      <th class="px-4 py-2">
+                        {{ 'Aksi' if current_lang == 'id' else 'Action' }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      class="border-b {{ 'hover:bg-gray-100 dark:hover:bg-gray-800' if current_theme == 'dark' else 'hover:bg-gray-300 dark:hover:bg-gray-300' }}"
+                    >
+                      <td class="px-4 py-2">1</td>
+                      <td class="px-4 py-2">Andi</td>
+                      <td class="px-4 py-2">01.045</td>
+                      <td class="px-4 py-2 font-bold">92.5</td>
+                      <td class="px-4 py-2">
+                        <span
+                          class="px-2 py-1 text-xs rounded bg-green-100 text-green-700"
+                          >Lolos</span
+                        >
+                      </td>
+                      <td class="px-4 py-2">
+                        <button
+                          @click="openDetail = true; selectedPeserta = 'Andi'"
+                          class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
+                    <tr
+                      class="border-b {{ 'hover:bg-gray-100 dark:hover:bg-gray-800' if current_theme == 'dark' else 'hover:bg-gray-300 dark:hover:bg-gray-300' }}"
+                    >
+                      <td class="px-4 py-2">2</td>
+                      <td class="px-4 py-2">Budi</td>
+                      <td class="px-4 py-2">01.056</td>
+                      <td class="px-4 py-2 font-bold">85.0</td>
+                      <td class="px-4 py-2">
+                        <span
+                          class="px-2 py-1 text-xs rounded bg-red-100 text-red-700"
+                          >Tidak Lolos</span
+                        >
+                      </td>
+                      <td class="px-4 py-2">
+                        <button
+                          @click="openDetail = true; selectedPeserta = 'Budi'"
+                          class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Statistik -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div
+                  class="bg-white p-4 rounded-xl shadow {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <h2 class="font-semibold mb-2">Distribusi Status</h2>
+                  <canvas id="chartStatus"></canvas>
+                </div>
+                <div
+                  class="bg-white p-4 rounded-xl shadow {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <h2 class="font-semibold mb-2">Rata-rata Nilai Kriteria</h2>
+                  <canvas id="chartKriteria"></canvas>
+                </div>
+              </div>
+
+              <!-- Export & Riwayat -->
+              <div class="flex justify-between items-center mt-6">
+                <div class="flex gap-2">
+                  <button
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    <i class="fa fa-file-excel"></i> Export Excel
+                  </button>
+                  <button
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  >
+                    <i class="fa fa-file-pdf"></i> Export PDF
+                  </button>
+                </div>
+                <button
+                  class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  <i class="fa fa-history"></i> {{ 'Riwayat Seleksi' if
+                  current_lang == 'id' else 'Selection History' }}
+                </button>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Modal Detail -->
+    <div
+      x-show="openDetail"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 w-1/2 {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+      >
+        <h2 class="text-xl font-bold mb-4">
+          Detail Nilai: <span x-text="selectedPeserta"></span>
+        </h2>
+        <table class="w-full mb-4">
+          <thead class="bg-gray-200 dark:bg-gray-700">
+            <tr>
+              <th class="px-4 py-2">Kriteria</th>
+              <th class="px-4 py-2">Nilai</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="px-4 py-2">Kesehatan</td>
+              <td class="px-4 py-2">90</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2">Pengetahuan</td>
+              <td class="px-4 py-2">85</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2">Keterampilan</td>
+              <td class="px-4 py-2">88</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2">Wawasan</td>
+              <td class="px-4 py-2">87</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="flex justify-end">
+          <button
+            @click="openDetail = false"
+            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart.js Script -->
+    <script>
+      const ctxStatus = document.getElementById("chartStatus");
+      new Chart(ctxStatus, {
+        type: "pie",
+        data: {
+          labels: ["Lolos", "Tidak Lolos"],
+          datasets: [
+            {
+              data: [60, 40],
+            },
+          ],
+        },
+      });
+
+      const ctxKriteria = document.getElementById("chartKriteria");
+      new Chart(ctxKriteria, {
+        type: "bar",
+        data: {
+          labels: ["Kesehatan", "Pengetahuan", "Keterampilan", "Wawasan"],
+          datasets: [
+            {
+              label: "Rata-rata",
+              data: [85, 80, 82, 84],
+            },
+          ],
+        },
+      });
+    </script>
+
+    <!-- Animation & Notification Script -->
+    {% include 'script_animation.html' %} {% include 'script_notification.html'
+    %}
+  </body>
+</html>

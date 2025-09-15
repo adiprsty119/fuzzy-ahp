@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Script Sidebar -->
+    {% include "script_sidebar.html" %}
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <!-- Sidebar -->
+      {% include 'sidebar.html' %}
+
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Top Navbar -->
+        {% include 'header.html' %}
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-y-auto pt-28 h-full transition-all duration-300"
+          :class="Alpine.store('sidebar').open ? 'ml-[15%]' : 'ml-[1%]'"
+        >
+          <section
+            class="flex items-center justify-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+          >
+            <!-- Notification Box -->
+            {% include 'notification_box.html' %}
+
+            <!-- Content -->
+            <div class="container mx-auto p-6">
+              <h1 class="text-2xl font-bold mb-8">
+                {{ 'Pengaturan' if current_lang == 'id' else 'Settings' }}
+              </h1>
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Pengguna -->
+                <div
+                  class="bg-white shadow-lg rounded-xl p-6 transition {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center mb-4">
+                    <div
+                      class="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-600"
+                    >
+                      <i class="fas fa-users text-xl"></i>
+                    </div>
+                    <h3 class="ml-4 text-lg font-semibold">
+                      {{ 'Manajemen Pengguna' if current_lang == 'id' else 'User
+                      Management' }}
+                    </h3>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Kelola akun peserta, penilai, dan admin beserta hak
+                    aksesnya.' if current_lang == 'id' else 'Manage accounts for
+                    participants, judges, and admins with role settings.' }}
+                  </p>
+                  <div class="space-y-2">
+                    <button
+                      class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                    >
+                      <i class="fas fa-user-plus mr-2"></i>{{ 'Tambah Pengguna'
+                      if current_lang == 'id' else 'Add User' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 cursor-pointer"
+                    >
+                      <i class="fas fa-user-shield mr-2"></i>{{ 'Kelola Role &
+                      Hak Akses' if current_lang == 'id' else 'Manage Roles &
+                      Access' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 cursor-pointer"
+                    >
+                      <i class="fas fa-list mr-2"></i>{{ 'Log Aktivitas' if
+                      current_lang == 'id' else 'Activity Log' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Kriteria & Bobot -->
+                <div
+                  class="bg-white shadow-lg rounded-xl p-6 transition {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center mb-4">
+                    <div
+                      class="w-12 h-12 flex items-center justify-center rounded-full bg-green-100 text-green-600"
+                    >
+                      <i class="fas fa-balance-scale text-xl"></i>
+                    </div>
+                    <h3 class="ml-4 text-lg font-semibold">
+                      {{ 'Kriteria & Bobot' if current_lang == 'id' else
+                      'Criteria & Weights' }}
+                    </h3>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Atur kriteria seleksi, bobot Fuzzy-AHP, dan nilai ambang
+                    batas kelulusan.' if current_lang == 'id' else 'Configure
+                    selection criteria, Fuzzy-AHP weights, and passing
+                    thresholds.' }}
+                  </p>
+                  <div class="space-y-2">
+                    <button
+                      class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+                    >
+                      <i class="fas fa-cogs mr-2"></i>{{ 'Kelola Kriteria' if
+                      current_lang == 'id' else 'Manage Criteria' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 cursor-pointer"
+                    >
+                      <i class="fas fa-percentage mr-2"></i>{{ 'Input Bobot
+                      Fuzzy-AHP' if current_lang == 'id' else 'Input Fuzzy-AHP
+                      Weights' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 cursor-pointer"
+                    >
+                      <i class="fas fa-sliders-h mr-2"></i>{{ 'Atur Ambang
+                      Batas' if current_lang == 'id' else 'Set Threshold' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Seleksi -->
+                <div
+                  class="bg-white shadow-lg rounded-xl p-6 transition {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center mb-4">
+                    <div
+                      class="w-12 h-12 flex items-center justify-center rounded-full bg-purple-100 text-purple-600"
+                    >
+                      <i class="fas fa-calendar-check text-xl"></i>
+                    </div>
+                    <h3 class="ml-4 text-lg font-semibold">
+                      {{ 'Pengaturan Seleksi' if current_lang == 'id' else
+                      'Selection Settings' }}
+                    </h3>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Kelola jadwal seleksi, tahapan, dan kuota peserta pada
+                    sistem.' if current_lang == 'id' else 'Manage selection
+                    schedules, stages, and participant quotas.' }}
+                  </p>
+                  <div class="space-y-2">
+                    <button
+                      class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer"
+                    >
+                      <i class="fas fa-calendar-alt mr-2"></i>{{ 'Atur Jadwal
+                      Seleksi' if current_lang == 'id' else 'Set Schedule' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer"
+                    >
+                      <i class="fas fa-tasks mr-2"></i>{{ 'Atur Tahapan' if
+                      current_lang == 'id' else 'Manage Stages' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 cursor-pointer"
+                    >
+                      <i class="fas fa-user-friends mr-2"></i>{{ 'Atur Kuota
+                      Peserta' if current_lang == 'id' else 'Set Quota' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Sistem & Tampilan -->
+                <div
+                  class="bg-white shadow-lg rounded-xl p-6 transition {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center mb-4">
+                    <div
+                      class="w-12 h-12 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600"
+                    >
+                      <i class="fas fa-cog text-xl"></i>
+                    </div>
+                    <h3 class="ml-4 text-lg font-semibold">
+                      {{ 'Sistem & Tampilan' if current_lang == 'id' else
+                      'System & Display' }}
+                    </h3>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Atur bahasa, tema, logo, serta preferensi notifikasi
+                    aplikasi.' if current_lang == 'id' else 'Configure language,
+                    theme, logo, and notification preferences.' }}
+                  </p>
+                  <div class="space-y-2">
+                    <button
+                      class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 cursor-pointer"
+                    >
+                      <i class="fas fa-language mr-2"></i>{{ 'Atur Bahasa &
+                      Tema' if current_lang == 'id' else 'Language & Theme' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 cursor-pointer"
+                    >
+                      <i class="fas fa-image mr-2"></i>{{ 'Upload Logo' if
+                      current_lang == 'id' else 'Upload Logo' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 cursor-pointer"
+                    >
+                      <i class="fas fa-bell mr-2"></i>{{ 'Atur Notifikasi' if
+                      current_lang == 'id' else 'Notifications' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Keamanan -->
+                <div
+                  class="bg-white shadow-lg rounded-xl p-6 transition {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center mb-4">
+                    <div
+                      class="w-12 h-12 flex items-center justify-center rounded-full bg-red-100 text-red-600"
+                    >
+                      <i class="fas fa-shield-alt text-xl"></i>
+                    </div>
+                    <h3 class="ml-4 text-lg font-semibold">
+                      {{ 'Keamanan' if current_lang == 'id' else 'Security' }}
+                    </h3>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Kelola backup database, kebijakan password, serta
+                    autentikasi ganda (2FA).' if current_lang == 'id' else
+                    'Manage database backups, password policies, and two-factor
+                    authentication.' }}
+                  </p>
+                  <div class="space-y-2">
+                    <button
+                      class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 cursor-pointer"
+                    >
+                      <i class="fas fa-database mr-2"></i>{{ 'Backup Database'
+                      if current_lang == 'id' else 'Backup Database' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 cursor-pointer"
+                    >
+                      <i class="fas fa-key mr-2"></i>{{ 'Kebijakan Password' if
+                      current_lang == 'id' else 'Password Policy' }}
+                    </button>
+                    <button
+                      class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+                    >
+                      <i class="fas fa-lock mr-2"></i>{{ 'Aktifkan 2FA' if
+                      current_lang == 'id' else 'Enable 2FA' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Animation & Notification Script -->
+    {% include 'script_animation.html' %} {% include 'script_notification.html'
+    %}
+  </body>
+</html>

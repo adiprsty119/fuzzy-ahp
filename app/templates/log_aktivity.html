@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Script Sidebar -->
+    {% include "script_sidebar.html" %}
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <!-- Sidebar -->
+      {% include 'sidebar.html' %}
+
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Top Navbar -->
+        {% include 'header.html' %}
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-y-auto pt-28 h-full transition-all duration-300"
+          :class="Alpine.store('sidebar').open ? 'ml-[15%]' : 'ml-[1%]'"
+        >
+          <section
+            class="flex items-center justify-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+          >
+            <!-- Notification Box -->
+            {% include 'notification_box.html' %}
+
+            <!-- Content -->
+            <div class="container mx-auto p-6">
+              <h1 class="text-2xl font-bold mb-6">
+                {{ 'Log Aktivitas' if current_lang == 'id' else 'Activity Log'
+                }}
+              </h1>
+
+              <!-- Filter Section -->
+              <div
+                class="bg-white shadow-md rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700 {{ 'dark:bg-gray-900' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+              >
+                <form class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <!-- Tanggal -->
+                  <div>
+                    <label class="block text-sm font-medium mb-1"
+                      >{{ 'Tanggal' if current_lang == 'id' else 'Date'
+                      }}</label
+                    >
+                    <input
+                      type="date"
+                      class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <!-- Role -->
+                  <div>
+                    <label class="block text-sm font-medium mb-1"
+                      >{{ 'Role' if current_lang == 'id' else 'Role' }}</label
+                    >
+                    <select
+                      class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">
+                        {{ 'Semua' if current_lang == 'id' else 'All' }}
+                      </option>
+                      <option value="admin">Admin</option>
+                      <option value="penilai">
+                        {{ 'Penilai' if current_lang == 'id' else 'Evaluator' }}
+                      </option>
+                      <option value="peserta">
+                        {{ 'Peserta' if current_lang == 'id' else 'Participant'
+                        }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Jenis Aktivitas -->
+                  <div>
+                    <label class="block text-sm font-medium mb-1"
+                      >{{ 'Aktivitas' if current_lang == 'id' else 'Activity'
+                      }}</label
+                    >
+                    <select
+                      class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">
+                        {{ 'Semua' if current_lang == 'id' else 'All' }}
+                      </option>
+                      <option value="login">Login</option>
+                      <option value="logout">Logout</option>
+                      <option value="update">Update</option>
+                      <option value="delete">Delete</option>
+                      <option value="nilai">
+                        {{ 'Penilaian' if current_lang == 'id' else 'Evaluation'
+                        }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Search -->
+                  <div>
+                    <label class="block text-sm font-medium mb-1"
+                      >{{ 'Cari' if current_lang == 'id' else 'Search' }}</label
+                    >
+                    <input
+                      type="text"
+                      placeholder="{{ 'Ketik nama pengguna...' if current_lang == 'id' else 'Type username...' }}"
+                      class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </form>
+              </div>
+
+              <!-- Log Table -->
+              <div
+                class="bg-white shadow-md rounded-xl border border-gray-200 dark:border-gray-700 {{ 'dark:bg-gray-900' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+              >
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm text-left">
+                    <thead
+                      class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+                    >
+                      <tr>
+                        <th class="px-4 py-3">User</th>
+                        <th class="px-4 py-3">Role</th>
+                        <th class="px-4 py-3">
+                          {{ 'Aktivitas' if current_lang == 'id' else 'Activity'
+                          }}
+                        </th>
+                        <th class="px-4 py-3">
+                          {{ 'Detail' if current_lang == 'id' else 'Details' }}
+                        </th>
+                        <th class="px-4 py-3">IP</th>
+                        <th class="px-4 py-3">
+                          {{ 'Tanggal & Waktu' if current_lang == 'id' else
+                          'Date & Time' }}
+                        </th>
+                        <th class="px-4 py-3 text-center">
+                          {{ 'Aksi' if current_lang == 'id' else 'Action' }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      class="divide-y divide-gray-200 dark:divide-gray-600"
+                    >
+                      <tr>
+                        <td class="px-4 py-3 font-medium">Budi</td>
+                        <td class="px-4 py-3">Admin</td>
+                        <td class="px-4 py-3">Login</td>
+                        <td class="px-4 py-3">Berhasil login</td>
+                        <td class="px-4 py-3">192.168.1.10</td>
+                        <td class="px-4 py-3">2025-09-08 10:21</td>
+                        <td class="px-4 py-3 flex justify-center gap-2">
+                          <button
+                            class="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                          >
+                            {{ 'Detail' if current_lang == 'id' else 'Detail' }}
+                          </button>
+                          <button
+                            class="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                          >
+                            {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-3 font-medium">Siti</td>
+                        <td class="px-4 py-3">
+                          {{ 'Penilai' if current_lang == 'id' else 'Evaluator'
+                          }}
+                        </td>
+                        <td class="px-4 py-3">
+                          {{ 'Update' if current_lang == 'id' else 'Update' }}
+                        </td>
+                        <td class="px-4 py-3">Mengubah data peserta</td>
+                        <td class="px-4 py-3">192.168.1.12</td>
+                        <td class="px-4 py-3">2025-09-08 09:15</td>
+                        <td class="px-4 py-3 flex justify-center gap-2">
+                          <button
+                            class="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                          >
+                            {{ 'Detail' if current_lang == 'id' else 'Detail' }}
+                          </button>
+                          <button
+                            class="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                          >
+                            {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Footer: Export & Pagination -->
+                <div
+                  class="flex flex-col md:flex-row items-center justify-between px-4 py-3 gap-4"
+                >
+                  <!-- Export -->
+                  <div class="flex gap-2">
+                    <button
+                      class="px-3 py-1 text-sm bg-green-500 hover:bg-green-600 text-white rounded-lg"
+                    >
+                      Export CSV
+                    </button>
+                    <button
+                      class="px-3 py-1 text-sm bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg"
+                    >
+                      Export PDF
+                    </button>
+                  </div>
+
+                  <!-- Pagination -->
+                  <div class="flex gap-2 items-center">
+                    <button
+                      class="px-2 py-1 text-sm bg-gray-300 dark:bg-gray-600 rounded-lg"
+                    >
+                      «
+                    </button>
+                    <span class="text-sm">Page 1 of 10</span>
+                    <button
+                      class="px-2 py-1 text-sm bg-gray-300 dark:bg-gray-600 rounded-lg"
+                    >
+                      »
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Animation & Notification Script -->
+    {% include 'script_animation.html' %} {% include 'script_notification.html'
+    %}
+  </body>
+</html>

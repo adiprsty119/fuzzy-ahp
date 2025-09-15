@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Script Sidebar -->
+    {% include "script_sidebar.html" %}
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <!-- Sidebar -->
+      {% include 'sidebar.html' %}
+
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Top Navbar -->
+        {% include 'header.html' %}
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-y-auto pt-28 h-full transition-all duration-300"
+          :class="Alpine.store('sidebar').open ? 'ml-[15%]' : 'ml-[1%]'"
+        >
+          <section
+            class="flex items-center justify-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+          >
+            <!-- Notification Box -->
+            {% include 'notification_box.html' %}
+
+            <!-- Content -->
+            <div class="container mx-auto p-6">
+              <h1 class="text-2xl font-bold mb-6">
+                {{ 'Data Peserta' if current_lang == 'id' else 'Participants
+                Data' }}
+              </h1>
+
+              <!-- 🔎 Toolbar: Search, Filter, Import/Export -->
+              <div
+                class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6"
+              >
+                <div class="flex items-center gap-2 w-full md:w-1/2">
+                  <input
+                    type="text"
+                    placeholder="{{ 'Cari peserta...' if current_lang == 'id' else 'Search participants...' }}"
+                    class="w-full px-4 py-2 rounded-xl border focus:ring-2 {{ 'bg-gray-800 text-white placeholder-gray-400 focus:ring-yellow-400' if current_theme == 'dark' else 'bg-gray-100 border text-black placeholder-gray-400 focus:ring-gray-900' }}"
+                  />
+                  <select
+                    class="px-3 py-2 rounded-xl border focus:ring-2 {{ 'bg-gray-800 text-white focus:ring-green-400' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                  >
+                    <option>
+                      {{ 'Semua Status' if current_lang == 'id' else 'All
+                      Status' }}
+                    </option>
+                    <option>
+                      {{ 'Menunggu Verifikasi' if current_lang == 'id' else
+                      'Pending Verification' }}
+                    </option>
+                    <option>
+                      {{ 'Lolos' if current_lang == 'id' else 'Passed' }}
+                    </option>
+                    <option>
+                      {{ 'Tidak Lolos' if current_lang == 'id' else 'Failed' }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- 📂 Import / Export / Tambah -->
+                <div class="flex items-center gap-2">
+                  <button
+                    class="px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition flex items-center cursor-pointer"
+                  >
+                    <i class="fa-solid fa-file-import mr-2"></i>
+                    Import
+                  </button>
+                  <button
+                    class="px-4 py-2 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition flex items-center cursor-pointer"
+                  >
+                    <i class="fa-solid fa-file-export mr-2"></i>
+                    Export
+                  </button>
+                  <button
+                    class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition flex items-center cursor-pointer"
+                  >
+                    <i class="fa-solid fa-user-plus mr-2"></i>
+                    {{ 'Tambah Peserta' if current_lang == 'id' else 'Add
+                    Participant' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 📋 Table Data Peserta -->
+              <div
+                class="bg-white shadow-md rounded-2xl overflow-x-auto {{ 'dark:bg-gray-900' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+              >
+                <table class="w-full text-sm text-left">
+                  <thead
+                    class="{{ 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' if current_theme == 'dark' else 'bg-gray-200 dark:bg-gray-200 text-black dark:text-gray-900' }}"
+                  >
+                    <tr>
+                      <th class="px-4 py-3">No.</th>
+                      <th class="px-4 py-3">
+                        {{ 'Nama' if current_lang == 'id' else 'Name' }}
+                      </th>
+                      <th class="px-4 py-3">
+                        {{ 'Asal Sekolah' if current_lang == 'id' else 'School'
+                        }}
+                      </th>
+                      <th class="px-4 py-3">
+                        {{ 'Status Seleksi' if current_lang == 'id' else
+                        'Selection Status' }}
+                      </th>
+                      <th class="px-4 py-3">
+                        {{ 'Nilai' if current_lang == 'id' else 'Score' }}
+                      </th>
+                      <th class="px-4 py-3">
+                        {{ 'Aksi' if current_lang == 'id' else 'Actions' }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Contoh Data Peserta -->
+                    <tr
+                      class="border-b {{ 'hover:bg-gray-50 dark:hover:bg-gray-800' if current_theme == 'dark' else 'hover:bg-gray-50 dark:hover:bg-gray-100' }}"
+                    >
+                      <td class="px-4 py-3">1</td>
+                      <td class="px-4 py-3">Adi Prasetyo</td>
+                      <td class="px-4 py-3">SMA N 1 Merauke</td>
+                      <td class="px-4 py-3">
+                        <span
+                          class="px-3 py-1 text-xs rounded-full bg-yellow-200 text-yellow-800"
+                        >
+                          {{ 'Menunggu Verifikasi' if current_lang == 'id' else
+                          'Pending Verification' }}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3">85</td>
+                      <td class="px-4 py-3 flex gap-2">
+                        <button
+                          class="px-3 py-1 bg-gray-400 text-white rounded-lg hover:bg-gray-500 flex items-center cursor-pointer"
+                          aria-label="Lihat Detail"
+                        >
+                          <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button
+                          class="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center cursor-pointer"
+                          aria-label="Edit"
+                        >
+                          <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button
+                          class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center cursor-pointer"
+                          aria-label="Hapus"
+                        >
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                        <button
+                          class="px-3 py-1 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center cursor-pointer"
+                          aria-label="Cetak Kartu Peserta"
+                        >
+                          <i class="fa-solid fa-id-card"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- 📊 Grafik / Ringkasan -->
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div
+                  class="bg-white shadow-md rounded-2xl p-4 {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <h2 class="text-lg font-semibold mb-3">
+                    {{ 'Distribusi Status Peserta' if current_lang == 'id' else
+                    'Participants Status Distribution' }}
+                  </h2>
+                  <div
+                    id="chart-status"
+                    class="h-48 flex items-center justify-center"
+                  >
+                    <!-- Placeholder Chart -->
+                    <i class="fa-solid fa-chart-pie text-gray-400 text-5xl"></i>
+                  </div>
+                </div>
+                <div
+                  class="bg-white shadow-md rounded-2xl p-4 {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <h2 class="text-lg font-semibold mb-3">
+                    {{ 'Rata-rata Nilai Peserta' if current_lang == 'id' else
+                    'Average Scores' }}
+                  </h2>
+                  <div
+                    id="chart-score"
+                    class="h-48 flex items-center justify-center"
+                  >
+                    <!-- Placeholder Chart -->
+                    <i
+                      class="fa-solid fa-chart-line text-gray-400 text-5xl"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Animation & Notification Script -->
+    {% include 'script_animation.html' %} {% include 'script_notification.html'
+    %}
+  </body>
+</html>

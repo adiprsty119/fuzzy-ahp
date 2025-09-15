@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Script Sidebar -->
+    {% include "script_sidebar.html" %}
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <!-- Sidebar -->
+      {% include 'sidebar.html' %}
+
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Top Navbar -->
+        {% include 'header.html' %}
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-y-auto pt-28 h-full transition-all duration-300"
+          :class="Alpine.store('sidebar').open ? 'ml-[15%]' : 'ml-[1%]'"
+        >
+          <section
+            class="flex items-center justify-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+          >
+            <!-- Notification Box -->
+            {% include 'notification_box.html' %}
+
+            <!-- Content -->
+            <div class="container mx-auto p-6 w-full">
+              <h1 class="text-2xl font-bold mb-6">
+                {{ 'Notifikasi' if current_lang == 'id' else 'Notifications' }}
+              </h1>
+
+              <!-- 🔎 Toolbar Filter & Search -->
+              <div
+                class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6"
+              >
+                <div class="flex items-center gap-2 w-full md:w-2/3">
+                  <input
+                    type="text"
+                    placeholder="{{ 'Cari notifikasi...' if current_lang == 'id' else 'Search notifications...' }}"
+                    class="w-full px-4 py-2 rounded-xl border focus:ring-2 focus:ring-blue-400"
+                  />
+                  <select
+                    class="px-3 py-2 rounded-xl border focus:ring-2 focus:ring-green-400"
+                  >
+                    <option>
+                      {{ 'Semua Kategori' if current_lang == 'id' else 'All
+                      Categories' }}
+                    </option>
+                    <option>
+                      {{ 'Sistem' if current_lang == 'id' else 'System' }}
+                    </option>
+                    <option>
+                      {{ 'Peserta' if current_lang == 'id' else 'Participant' }}
+                    </option>
+                    <option>
+                      {{ 'Seleksi' if current_lang == 'id' else 'Selection' }}
+                    </option>
+                    <option>
+                      {{ 'Penilaian' if current_lang == 'id' else 'Evaluation'
+                      }}
+                    </option>
+                  </select>
+                  <select
+                    class="px-3 py-2 rounded-xl border focus:ring-2 focus:ring-yellow-400"
+                  >
+                    <option>
+                      {{ 'Semua Status' if current_lang == 'id' else 'All
+                      Status' }}
+                    </option>
+                    <option>
+                      {{ 'Belum Dibaca' if current_lang == 'id' else 'Unread' }}
+                    </option>
+                    <option>
+                      {{ 'Sudah Dibaca' if current_lang == 'id' else 'Read' }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- 🔔 Action: Mark All as Read -->
+                <div>
+                  <button
+                    class="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition flex items-center cursor-pointer"
+                  >
+                    <i class="fa-solid fa-check-double mr-2"></i>
+                    {{ 'Tandai Semua Dibaca' if current_lang == 'id' else 'Mark
+                    All as Read' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 📋 List Notifikasi -->
+              <div class="space-y-4">
+                <!-- Notifikasi Unread -->
+                <div
+                  class="flex items-start gap-4 p-4 rounded-xl shadow-md bg-white border-l-4 border-blue-500 {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <i class="fa-solid fa-user-plus text-blue-500 text-xl"></i>
+                  <div class="flex-1">
+                    <h3 class="font-semibold">
+                      {{ 'Peserta baru ditambahkan' if current_lang == 'id' else
+                      'New participant added' }}
+                    </h3>
+                    <p
+                      class="text-sm {{ 'text-gray-600 dark:text-gray-400' if current_theme == 'dark' else 'text-gray-800 dark:text-gray-900' }}"
+                    >
+                      {{ 'Adi Prasetyo dari SMA N 1 Merauke telah terdaftar.' if
+                      current_lang == 'id' else 'Adi Prasetyo from SMA N 1
+                      Merauke has been registered.' }}
+                    </p>
+                    <span class="text-xs text-gray-500">5 menit lalu</span>
+                  </div>
+                  <div class="flex flex-col gap-2">
+                    <button
+                      class="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-600 cursor-pointer"
+                    >
+                      {{ 'Lihat Peserta' if current_lang == 'id' else 'View
+                      Participant' }}
+                    </button>
+                    <button
+                      class="px-3 py-1 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer"
+                    >
+                      {{ 'Tandai Dibaca' if current_lang == 'id' else 'Mark
+                      Read' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Notifikasi Seleksi -->
+                <div
+                  class="flex items-start gap-4 p-4 rounded-xl shadow-md bg-white border-l-4 border-green-500 {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <i class="fa-solid fa-check text-green-500 text-xl"></i>
+                  <div class="flex-1">
+                    <h3 class="font-semibold">
+                      {{ 'Hasil Seleksi Tahap 1' if current_lang == 'id' else
+                      'Selection Stage 1 Result' }}
+                    </h3>
+                    <p
+                      class="text-sm {{ 'text-gray-600 dark:text-gray-400' if current_theme == 'dark' else 'text-gray-800 dark:text-gray-900' }}"
+                    >
+                      {{ '10 peserta dinyatakan lolos ke tahap berikutnya.' if
+                      current_lang == 'id' else '10 participants have passed to
+                      the next stage.' }}
+                    </p>
+                    <span class="text-xs text-gray-500">2 jam lalu</span>
+                  </div>
+                  <div>
+                    <button
+                      class="px-3 py-1 text-xs bg-green-500 text-white rounded-lg hover:bg-green-600 cursor-pointer"
+                    >
+                      {{ 'Lihat Hasil' if current_lang == 'id' else 'View
+                      Results' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Notifikasi Sistem -->
+                <div
+                  class="flex items-start gap-4 p-4 rounded-xl shadow-md bg-white border-l-4 border-red-500 {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <i
+                    class="fa-solid fa-triangle-exclamation text-red-500 text-xl"
+                  ></i>
+                  <div class="flex-1">
+                    <h3 class="font-semibold">
+                      {{ 'Pembaruan Sistem' if current_lang == 'id' else 'System
+                      Update' }}
+                    </h3>
+                    <p
+                      class="text-sm {{ 'text-gray-600 dark:text-gray-400' if current_theme == 'dark' else 'text-gray-800 dark:text-gray-900' }}"
+                    >
+                      {{ 'Aplikasi diperbarui ke versi 1.2 dengan peningkatan
+                      keamanan.' if current_lang == 'id' else 'Application
+                      updated to version 1.2 with security improvements.' }}
+                    </p>
+                    <span class="text-xs text-gray-500">Kemarin</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 📂 Riwayat Arsip -->
+              <div class="mt-8">
+                <h2 class="text-lg font-semibold mb-3">
+                  {{ 'Riwayat Notifikasi' if current_lang == 'id' else
+                  'Notification History' }}
+                </h2>
+                <div
+                  class="bg-white rounded-xl p-4 {{ 'dark:bg-gray-900 text-gray-600 dark:text-gray-400' if current_theme == 'dark' else 'dark:bg-gray-100 text-gray-800 dark:text-gray-900' }}"
+                >
+                  <p class="text-sm">
+                    {{ 'Menampilkan arsip notifikasi lama berdasarkan tanggal.'
+                    if current_lang == 'id' else 'Displaying archived
+                    notifications by date.' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Animation & Notification Script -->
+    {% include 'script_animation.html' %} {% include 'script_notification.html'
+    %}
+  </body>
+</html>

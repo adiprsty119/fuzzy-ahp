@@ -1,24 +1,36 @@
 # app/models.py
 from app import db
 from sqlalchemy.dialects.mysql import ENUM
+from flask_login import UserMixin
     
 # Access to table users
-class Users(db.Model):
+class Users(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column('id', db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
     nama_lengkap = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
-    jenis_kelamin = db.Column(db.String(255), nullable=False)
-    usia = db.Column(db.String(255), nullable=False)
+    jenis_kelamin = db.Column(ENUM('Laki-laki', 'Perempuan', name='jenis_kelamin'), nullable=True, default="")
+    usia = db.Column(db.String(255), nullable=True, default="0")
     foto = db.Column(db.String(255), default="img/default-user.png")
-    nomor_hp = db.Column(db.String(255), nullable=False)
-    level = db.Column(ENUM('admin', 'user', name='user_level'), nullable=False)
+    nomor_hp = db.Column(db.String(255), nullable=True, default="")
+    level = db.Column(ENUM('admin', 'penilai', 'peserta', name='user_level'), nullable=False)
     reset_token = db.Column(db.String(255), nullable=True, default="")
     token_exp = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
-    login_method = db.Column(db.String(100), nullable=False)
+    login_method = db.Column(db.String(100), nullable=False, default="manual")
     sidebar_state = db.Column(db.String(10), nullable=True, default='expanded')
+
+# Access to table tb_kegiatan
+class Event(db.Model):
+    __tablename__ = 'tb_kegiatan'
+    id_kegiatan = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    jenis_kegiatan = db.Column(db.Enum('siaga','penggalang','penegak','pandega','penegak dan pandega'), nullable=False)
+    nama_kegiatan = db.Column(db.String(255), nullable=False)
+    waktu_pelaksanaan = db.Column(db.String(255), nullable=False)
+    tempat_pelaksanaan = db.Column(db.String(100), nullable=False)
+    skala_kegiatan = db.Column(db.Enum('ranting','cabang','daerah','nasional','internasional'), nullable=False)
+    kwartir_penyelenggara = db.Column(db.Enum('kwartir ranting','kwartir cabang','kwartir daerah','kwartir nasional'), nullable=False) 
 
 # Access to table notifications
 class Notification(db.Model):
@@ -28,10 +40,12 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     message = db.Column(db.String(255))
 
+# Access to table participants
 class Participants(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nama = db.Column(db.String(100))
 
+# Access to table tb_kriteria
 class Criteria(db.Model):
     __tablename__ = 'tb_kriteria'
     id_kriteria = db.Column(db.Integer, primary_key=True)
@@ -39,3 +53,47 @@ class Criteria(db.Model):
     bobot = db.Column(db.Float, nullable=False)
     deskripsi = db.Column(db.Text, nullable=False)
     jenis_kriteria = db.Column(db.String(255), nullable=False)
+
+# Access to table himpunan_kriteria
+class HimpunanKriteria(db.Model):
+    __tablename__ = 'himpunan_kriteria'
+    id_himpunan = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_kriteria = db.Column(db.Integer, db.ForeignKey('tb_kriteria.id_kriteria'), nullable=False)
+    nama_himpunan = db.Column(db.String(255), nullable=False)
+    nilai_himpunan = db.Column(db.Float, nullable=False)
+
+
+# Access to table tb_penilaian
+class Penilaian(db.Model):
+    __tablename__ = 'tb_penilaian'
+    id_penilaian = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_users = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    id_kriteria = db.Column(db.Integer, db.ForeignKey('tb_kriteria.id_kriteria'), nullable=False)
+    nilai = db.Column(db.Float, nullable=False)
+
+
+# Access to table tb_hasil_seleksi
+class HasilSeleksi(db.Model):
+    __tablename__ = 'tb_hasil_seleksi'
+    id_hasil = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_users = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    skor_akhir = db.Column(db.Float, nullable=False)
+    ranking = db.Column(db.Integer, nullable=False)
+
+
+# Access to table tb_log_aktivitas
+class LogAktivitas(db.Model):
+    __tablename__ = 'tb_log_aktivitas'
+    id_log = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_users = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    aktivitas = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+
+
+# Access to table tb_informasi
+class Informasi(db.Model):
+    __tablename__ = 'tb_informasi'
+    id_informasi = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    judul = db.Column(db.String(255), nullable=False)
+    isi = db.Column(db.Text, nullable=False)
+    tanggal = db.Column(db.Date, server_default=db.func.current_date())

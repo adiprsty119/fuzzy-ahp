@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html
+  lang="{{ current_lang }}"
+  x-data
+  class="transition duration-300 ease-in-out"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-950 dark:bg-gray-900' if current_theme == 'dark' else 'bg-gray-300 dark:bg-gray-300' }}"
+    >
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Page Content -->
+        <main class="flex-1 overflow-y-auto pt-8 px-4 md:px-8 h-full">
+          <section class="flex justify-center items-start">
+            <div
+              class="w-full max-w-lg rounded-2xl shadow-lg p-8 transition-all duration-300 {{ 'bg-gray-700' if current_theme == 'dark' else 'bg-gray-100' }}"
+            >
+              <h2
+                class="text-2xl font-semibold mb-14 text-center {{ 'text-gray-800 dark:text-gray-100' if current_theme == 'dark' else 'text-gray-100 dark:text-gray-900' }}"
+              >
+                {{ 'Tambah Kegiatan' if current_lang == 'id' else 'Add Activity'
+                }}
+              </h2>
+
+              <form method="POST" class="space-y-4">
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
+
+                <!-- Nama Kegiatan -->
+                <div>
+                  <label
+                    class="block mb-1 font-medium {{ 'text-gray-700 dark:text-gray-200' if current_theme == 'dark' else 'text-gray-100 dark:text-gray-800' }}"
+                  >
+                    {{ 'Nama Kegiatan' if current_lang == 'id' else 'Activity
+                    Name' }}
+                  </label>
+                  <input
+                    type="text"
+                    name="nama_kegiatan"
+                    required
+                    class="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ 'dark:bg-gray-700 dark:text-white border-white dark:border-white' if current_theme == 'dark' else 'dark:bg-gray-200 dark:text-black border-gray-300 dark:border-gray-600' }}"
+                    placeholder="{{ 'Masukkan nama kegiatan' if current_lang == 'id' else 'Enter activity name' }}"
+                  />
+                </div>
+
+                <!-- Jenis Kegiatan -->
+                <div>
+                  <label
+                    class="block mb-1 font-medium {{ 'text-gray-700 dark:text-gray-200' if current_theme == 'dark' else 'text-gray-100 dark:text-gray-800' }}"
+                  >
+                    {{ 'Jenis Kegiatan' if current_lang == 'id' else 'Activity
+                    Type' }}
+                  </label>
+                  <select
+                    name="jenis_kegiatan"
+                    required
+                    class="w-full border rounded p-2"
+                  >
+                    <option
+                      value=""
+                      disabled
+                      selected
+                      class="text-gray-950 font-semibold"
+                    >
+                      {{ 'Pilih jenis kegiatan' if current_lang == 'id' else
+                      'Select Activity Type' }}
+                    </option>
+                    <option value="siaga" class="text-gray-950">
+                      {{ 'Siaga' if current_lang == 'id' else 'Cub Scout' }}
+                    </option>
+                    <option value="penggalang" class="text-gray-950">
+                      {{ 'Penggalang' if current_lang == 'id' else 'Intermediate
+                      Scout' }}
+                    </option>
+                    <option value="penegak" class="text-gray-950">
+                      {{ 'Penegak' if current_lang == 'id' else 'Senior Scout'
+                      }}
+                    </option>
+                    <option value="pandega" class="text-gray-950">
+                      {{ 'Pandega' if current_lang == 'id' else 'Advanced Scout'
+                      }}
+                    </option>
+                    <option value="penegak dan pandega" class="text-gray-950">
+                      {{ 'Penegak dan Pandega' if current_lang == 'id' else
+                      'Rover and Advanced Rover Scouts' }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Waktu Pelaksanaan -->
+                <div>
+                  <label
+                    class="block mb-1 font-medium {{ 'text-gray-700 dark:text-gray-200' if current_theme == 'dark' else 'text-gray-100 dark:text-gray-800' }}"
+                  >
+                    {{ 'Waktu Pelaksanaan' if current_lang == 'id' else
+                    'Schedule' }}
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="waktu_pelaksanaan"
+                    required
+                    class="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ 'dark:bg-gray-700 dark:text-white border-white dark:border-white' if current_theme == 'dark' else 'dark:bg-gray-200 dark:text-black border-gray-300 dark:border-gray-600' }}"
+                  />
+                </div>
+
+                <!-- Tempat Pelaksanaan -->
+                <div>
+                  <label
+                    class="block mb-1 font-medium {{ 'text-gray-700 dark:text-gray-200' if current_theme == 'dark' else 'text-gray-100 dark:text-gray-800' }}"
+                  >
+                    {{ 'Tempat Pelaksanaan' if current_lang == 'id' else
+                    'Location' }}
+                  </label>
+                  <input
+                    type="text"
+                    name="tempat_pelaksanaan"
+                    required
+                    class="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition {{ 'dark:bg-gray-700 dark:text-white border-white dark:border-white' if current_theme == 'dark' else 'dark:bg-gray-200 dark:text-black border-gray-300 dark:border-gray-600' }}"
+                    placeholder="{{ 'Masukkan tempat pelaksanaan' if current_lang == 'id' else 'Enter location' }}"
+                  />
+                </div>
+
+                <!-- Skala Kegiatan -->
+                <div>
+                  <label class="block mb-1 font-medium"
+                    >{{ 'Skala Kegiatan' if current_lang == 'id' else 'Activity
+                    Scale' }}</label
+                  >
+                  <select
+                    name="skala_kegiatan"
+                    required
+                    class="w-full border rounded p-2"
+                  >
+                    <option
+                      value=""
+                      disabled
+                      selected
+                      class="text-gray-950 font-semibold"
+                    >
+                      {{ 'Pilih skala kegiatan' if current_lang == 'id' else
+                      'Select Activity Scale' }}
+                    </option>
+                    <option value="ranting" class="text-gray-950">
+                      {{ 'Ranting' if current_lang == 'id' else 'Local Branch'
+                      }}
+                    </option>
+                    <option value="cabang" class="text-gray-950">
+                      {{ 'Cabang' if current_lang == 'id' else 'District Branch'
+                      }}
+                    </option>
+                    <option value="daerah" class="text-gray-950">
+                      {{ 'Daerah' if current_lang == 'id' else 'Regional Branch'
+                      }}
+                    </option>
+                    <option value="nasional" class="text-gray-950">
+                      {{ 'Nasional' if current_lang == 'id' else 'National' }}
+                    </option>
+                    <option value="internasional" class="text-gray-950">
+                      {{ 'Internasional' if current_lang == 'id' else
+                      'International' }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Kwartir Penyelenggara -->
+                <div>
+                  <label class="block mb-1 font-medium"
+                    >{{ 'Kwartir Penyelenggara' if current_lang == 'id' else
+                    'Schedule' }}</label
+                  >
+                  <select
+                    name="kwartir_penyelenggara"
+                    required
+                    class="w-full border rounded p-2"
+                  >
+                    <option
+                      value=""
+                      disabled
+                      selected
+                      class="text-gray-950 font-semibold"
+                    >
+                      {{ 'Pilih Kwartir Penyelenggara' if current_lang == 'id'
+                      else 'Select Role' }}
+                    </option>
+                    <option value="kwartir ranting" class="text-gray-950">
+                      {{ 'Kwartir Ranting' if current_lang == 'id' else
+                      'Schedule' }}
+                    </option>
+                    <option value="kwartir cabang" class="text-gray-950">
+                      {{ 'Kwartir Cabang' if current_lang == 'id' else
+                      'Schedule' }}
+                    </option>
+                    <option value="kwartir daerah" class="text-gray-950">
+                      {{ 'Kwartir Daerah' if current_lang == 'id' else
+                      'Schedule' }}
+                    </option>
+                    <option value="kwartir nasional" class="text-gray-950">
+                      {{ 'Kwartir Nasional' if current_lang == 'id' else
+                      'Schedule' }}
+                    </option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+                >
+                  {{ 'Simpan' if current_lang == 'id' else 'Save' }}
+                </button>
+              </form>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Animation Script -->
+    {% include 'script_animation.html' %}
+  </body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="transition duration-300 ease-in-out" lang="{{ current_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>
+      {{ 'Dashboard | SPK Pramuka' if current_lang == 'id' else 'Dashboard |
+      Scout DSS' }}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Script Sidebar -->
+    {% include "script_sidebar.html" %}
+
+    <!-- Script Theme -->
+    {% include 'script_theme.html' %}
+  </head>
+  <body
+    x-data="{ ready: false }"
+    x-init="ready = true"
+    :class="{ 'dark': $store.theme?.isDark }"
+    x-bind:class="{
+        'bg-background-dark text-white': $store.theme?.isDark,
+        'bg-gray-100 text-black': !$store.theme?.isDark
+      }"
+    class="transition duration-300 ease-in-out font-sans scroll-smooth {{ 'bg-background-dark text-white' if current_theme == 'dark' else 'bg-gray-100 text-black' }}"
+  >
+    <div
+      class="flex h-screen {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+    >
+      <!-- Sidebar -->
+      {% include 'sidebar.html' %}
+
+      <!-- Main content -->
+      <div class="flex flex-col flex-1 overflow-hidden h-full">
+        <!-- Top Navbar -->
+        {% include 'header.html' %}
+
+        <!-- Page Content -->
+        <main
+          class="flex-1 overflow-y-auto pt-28 h-full transition-all duration-300"
+          :class="Alpine.store('sidebar').open ? 'ml-[15%]' : 'ml-[1%]'"
+        >
+          <section
+            class="flex items-center justify-center wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-300' }}"
+          >
+            <!-- Notification Box -->
+            {% include 'notification_box.html' %}
+
+            <!-- Content -->
+            <div class="container mx-auto p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold">
+                  {{ 'Data Kriteria' if current_lang == 'id' else 'Criteria
+                  Data' }}
+                </h1>
+              </div>
+
+              <!-- Grid Menu -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Manajemen Kriteria -->
+                <div
+                  class="bg-white shadow-md rounded-2xl p-5 transition flex flex-col {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center space-x-3 mb-4">
+                    <i class="fa-solid fa-list text-blue-500 text-xl"></i>
+                    <h2 class="text-lg font-semibold">
+                      {{ 'Manajemen Kriteria' if current_lang == 'id' else
+                      'Criteria Management' }}
+                    </h2>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Tambah, ubah, atau hapus kriteria seleksi.' if
+                    current_lang == 'id' else 'Add, edit, or delete selection
+                    criteria.' }}
+                  </p>
+                  <button
+                    class="inline-flex items-center px-4 py-2 w-min text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-gear mr-2"></i>
+                    {{ 'Kelola' if current_lang == 'id' else 'Manage' }}
+                  </button>
+                </div>
+
+                <!-- Subkriteria -->
+                <div
+                  class="bg-white shadow-md rounded-2xl p-5 transition flex flex-col {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center space-x-3 mb-4">
+                    <i class="fa-solid fa-sitemap text-green-500 text-xl"></i>
+                    <h2 class="text-lg font-semibold">
+                      {{ 'Subkriteria' if current_lang == 'id' else
+                      'Subcriteria' }}
+                    </h2>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Definisikan subkriteria dan indikator penilaian.' if
+                    current_lang == 'id' else 'Define subcriteria and evaluation
+                    indicators.' }}
+                  </p>
+                  <button
+                    class="inline-flex items-center px-4 py-2 w-min text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-gear mr-2"></i>
+                    {{ 'Kelola' if current_lang == 'id' else 'Manage' }}
+                  </button>
+                </div>
+
+                <!-- Bobot Kriteria -->
+                <div
+                  class="bg-white shadow-md rounded-2xl p-5 transition flex flex-col {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center space-x-3 mb-4">
+                    <i
+                      class="fa-solid fa-scale-balanced text-purple-500 text-xl"
+                    ></i>
+                    <h2 class="text-lg font-semibold">
+                      {{ 'Bobot Kriteria' if current_lang == 'id' else 'Criteria
+                      Weights' }}
+                    </h2>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Hitung bobot kriteria dengan metode Fuzzy AHP.' if
+                    current_lang == 'id' else 'Calculate criteria weights using
+                    the Fuzzy AHP method.' }}
+                  </p>
+                  <button
+                    class="inline-flex items-center px-4 py-2 w-min text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-gear mr-2"></i>
+                    {{ 'Kelola' if current_lang == 'id' else 'Manage' }}
+                  </button>
+                </div>
+
+                <!-- Matriks Perbandingan -->
+                <div
+                  class="bg-white shadow-md rounded-2xl p-5 transition flex flex-col {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center space-x-3 mb-4">
+                    <i
+                      class="fa-solid fa-table-cells-large text-orange-500 text-xl"
+                    ></i>
+                    <h2 class="text-lg font-semibold">
+                      {{ 'Matriks Perbandingan' if current_lang == 'id' else
+                      'Comparison Matrix' }}
+                    </h2>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Isi perbandingan berpasangan antar kriteria.' if
+                    current_lang == 'id' else 'Input pairwise comparison between
+                    criteria.' }}
+                  </p>
+                  <button
+                    class="inline-flex items-center px-4 py-2 w-min text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-gear mr-2"></i>
+                    {{ 'Kelola' if current_lang == 'id' else 'Manage' }}
+                  </button>
+                </div>
+
+                <!-- Visualisasi -->
+                <div
+                  class="bg-white shadow-md rounded-2xl p-5 transition flex flex-col {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center space-x-3 mb-4">
+                    <i
+                      class="fa-solid fa-chart-pie text-yellow-500 text-xl"
+                    ></i>
+                    <h2 class="text-lg font-semibold">
+                      {{ 'Visualisasi' if current_lang == 'id' else
+                      'Visualization' }}
+                    </h2>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Lihat grafik distribusi bobot dan hierarki kriteria.' if
+                    current_lang == 'id' else 'View weight distribution charts
+                    and hierarchy.' }}
+                  </p>
+                  <button
+                    class="inline-flex items-center px-4 py-2 text-sm w-min font-medium rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 active:scale-95 transition-all shadow dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-eye mr-2"></i>
+                    {{ 'Lihat' if current_lang == 'id' else 'View' }}
+                  </button>
+                </div>
+
+                <!-- Laporan & Ekspor -->
+                <div
+                  class="bg-white shadow-md rounded-2xl p-5 transition flex flex-col {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
+                >
+                  <div class="flex items-center space-x-3 mb-4">
+                    <i class="fa-solid fa-file-export text-red-500 text-xl"></i>
+                    <h2 class="text-lg font-semibold">
+                      {{ 'Laporan & Ekspor' if current_lang == 'id' else
+                      'Reports & Export' }}
+                    </h2>
+                  </div>
+                  <p
+                    class="text-sm mb-4 {{ 'text-gray-600 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-900 dark:text-gray-600' }}"
+                  >
+                    {{ 'Cetak laporan atau ekspor data kriteria ke Excel/PDF.'
+                    if current_lang == 'id' else 'Generate reports or export
+                    criteria data to Excel/PDF.' }}
+                  </p>
+                  <button
+                    class="inline-flex items-center px-4 py-2 text-sm w-min font-medium rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 active:scale-95 transition-all shadow dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-eye mr-2"></i>
+                    {{ 'Lihat' if current_lang == 'id' else 'View' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Animation & Notification Script -->
+    {% include 'script_animation.html' %} {% include 'script_notification.html'
+    %}
+  </body>
+</html>

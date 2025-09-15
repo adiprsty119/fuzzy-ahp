@@ -3,7 +3,7 @@ from flask_session import Session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import create_app, db
-from app.models import Users, Participants, Criteria, Notification
+from app.models import Users, Participants, Criteria, Notification, Event
 from flask_mail import Mail, Message
 from twilio.rest import Client
 from authlib.integrations.flask_client import OAuth
@@ -15,8 +15,8 @@ from forms import LoginForm, RegisterForm
 from config import Config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask_login import LoginManager
-from flask_login import current_user, login_required
+from flask_login import current_user, LoginManager, login_user, login_required
+from functools import wraps
 import random, string
 import logging
 import secrets
@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = create_app()
-app.config['SESSION_FILE_DIR'] = os.path.join(app.root_path, 'flask_session')
+app.config['SESSION_FILE_PATH'] = os.path.join(app.root_path, 'flask_session')
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
@@ -43,6 +43,17 @@ limiter = Limiter(get_remote_address, app=app)
 logging.basicConfig(filename='login.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s:%(message)s')
 
+# Inisialisasi Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+login_manager.login_view = 'login'  # nama fungsi view untuk login
+login_manager.login_message_category = 'info'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Users.query.get(int(user_id))
+
 # Buat folder uploads jika belum ada
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
@@ -56,12 +67,11 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'adip98816@gmail.com'
-app.config['MAIL_PASSWORD'] = 'aiacumtbxgiyssuc'
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
 mail = Mail(app)
 
 # Whatsapp OTP
-load_dotenv()
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 client = Client(account_sid, auth_token)
@@ -156,6 +166,14 @@ def inject_notifications():
         unread_count = Notification.query.filter_by(user_id=user.id, is_read=False).count()
     return dict(notification_count=unread_count)
 
+# --- Middleware untuk cek login dan role ---
+def my_decorator(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # logika tambahan
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Endpoint login
 @app.route('/login/', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
@@ -164,6 +182,7 @@ def login():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
+        role = request.form.get("role")
         
         # Query user dari database
         user = Users.query.filter_by(username=username).first()
@@ -174,13 +193,29 @@ def login():
         elif not check_password_hash(user.password, password):
             logging.warning(f"Login gagal: password salah untuk user '{username}'.")
             flash("Password salah!", "danger")
+        if not role or role.lower() != user.level.lower(): 
+            # Validasi role dari dropdown dengan role di database
+            logging.warning(f"Login gagal: role '{role}' tidak sesuai untuk user '{username}'.")
+            flash("Role tidak sesuai!", "danger")
         else:
+            login_user(user)
             session['username'] = username  
+            session['role'] = user.level
             safe_username = escape(username)
-            logging.info(f"User '{username}' berhasil login.")
+            logging.info(f"User '{username}' berhasil login sebagai {user.level}.")
             flash(f"Login berhasil! Selamat datang, {safe_username}.", "success")
             session['first_time_login'] = True
-            return redirect(url_for('admin_dashboard')) 
+            
+            # Redirect sesuai role
+            if user.level == "admin":
+                return redirect(url_for('admin_dashboard'))
+            elif user.level == "penilai":
+                return redirect(url_for('penilai_dashboard'))
+            elif user.level == "peserta":
+                return redirect(url_for('peserta_dashboard'))
+            else:
+                # Default jika role tidak dikenali
+                return redirect(url_for('login')) 
     return render_template('login.html', form=form)
 
 # Endpoint login with Google
@@ -328,7 +363,7 @@ def register():
         username = request.form['username']
         password = request.form['password']
         confirm_password = request.form['confirmPassword']
-        level = 'user'  
+        level = 'peserta'  
         
         # Validasi password dengan regex
         password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
@@ -404,17 +439,21 @@ def register_google_callback():
             usia=None,
             foto=user_info['picture'],
             nomor_hp=None,
-            level='user',
+            level='peserta',
             reset_token=None,
-            token_exp=None
+            token_exp=None,
+            login_method="google"
     )
     if Users.query.filter_by(email=email).first():
         flash("Email sudah digunakan. Silakan login.", "warning")
         return redirect(url_for('login'))
+    if not new_user.jenis_kelamin:
+        new_user.jenis_kelamin = "tidak_diketahui"
     db.session.add(new_user)
     db.session.commit()
     
     # Login langsung setelah registrasi
+    login_user(new_user)
     session['username'] = new_user.username
     session['user'] = {
         'id': new_user.id,
@@ -672,15 +711,26 @@ def save_sidebar_state():
 
     return jsonify({'status': 'success', 'message': 'Sidebar state saved'})
 
+# --- Route Dashboard Admin ---
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
+    sidebar_state = current_user.sidebar_state or 'expanded'
     if 'username' not in session:
         flash("Silakan login terlebih dahulu", "warning")
         return redirect(url_for('login'))
     
     user = current_user
-    if not user or user.level != 'admin':
+    if not user:
+        flash("Akses ditolak. User tidak valid!", "danger")
+        return redirect(url_for('index'))
+    
+    # Cek level user
+    if user.level == 'penilai':
+        return redirect(url_for('penilai_dashboard'))
+    elif user.level == 'peserta':
+        return redirect(url_for('peserta_dashboard'))
+    elif user.level != 'admin':
         flash("Akses ditolak. Anda bukan admin!", "danger")
         return redirect(url_for('index'))
     
@@ -690,43 +740,186 @@ def admin_dashboard():
     total_notifications = Notification.query.count()
 
     sidebar_state = current_user.sidebar_state or 'expanded'
-    return render_template('dashboard_admin.html', sidebar_state=sidebar_state, user=user, total_users=total_users, total_participants=total_participants, total_criteria=total_criteria, total_notifications=total_notifications)
+    return render_template('dashboard_admin.html', sidebar_state=sidebar_state, user=user, total_users=total_users, total_participants=total_participants, total_criteria=total_criteria, total_notifications=total_notifications, time=time)
+
+# Middleware untuk membatasi akses hanya admin
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'role' not in session or session['role'] != 'admin':
+            flash("Akses ditolak! Hanya admin yang bisa membuka halaman ini.", "error")
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/admin/users')
+@login_required
+@admin_required
 def admin_users():
-    ...
-    
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, user=users, time=time)
+
+# Manajemen Kegiatan    
 @app.route('/admin/manajemen_kegiatan')
+@login_required
+@admin_required
 def admin_manajemen_kegiatan():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    kegiatan_list = Event.query.all()
+    return render_template("manajemen_seleksi.html", kegiatan_list=kegiatan_list, sidebar_state=sidebar_state, user=current_user, time=time)
+
+# Tambah Kegiatan
+@app.route('/admin/tambah_kegiatan', methods=['GET', 'POST'])
+@login_required
+def tambah_kegiatan():
+    if request.method == 'POST':
+        nama = request.form['nama_kegiatan']
+        jenis = request.form['jenis_kegiatan']
+        waktu = request.form['waktu_pelaksanaan']
+        tempat = request.form['tempat_pelaksanaan']
+        skala = request.form['skala_kegiatan']
+        kwartir = request.form['kwartir_penyelenggara']
+
+        new_event = Event(
+            nama_kegiatan=nama,
+            jenis_kegiatan=jenis,
+            waktu_pelaksanaan=waktu,
+            tempat_pelaksanaan=tempat,
+            skala_kegiatan=skala,
+            kwartir_penyelenggara=kwartir
+        )
+        db.session.add(new_event)
+        db.session.commit()
+
+        flash('Kegiatan berhasil ditambahkan!', 'success')
+        return redirect(url_for('admin_manajemen_kegiatan'))
+    return render_template("tambah_kegiatan.html")
+
+# Edit Kegiatan
+@app.route('/admin/edit_kegiatan/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_kegiatan(id):
+    event = Event.query.get_or_404(id)
+    if request.method == 'POST':
+        event.nama_kegiatan = request.form['nama_kegiatan']
+        event.jenis_kegiatan = request.form['jenis_kegiatan']
+        event.waktu_pelaksanaan = request.form['waktu_pelaksanaan']
+        event.tempat_pelaksanaan = request.form['tempat_pelaksanaan']
+        db.session.commit()
+        flash('Kegiatan berhasil diupdate!', 'success')
+        return redirect(url_for('admin_manajemen_kegiatan'))
+    return render_template("edit_kegiatan.html", event=event)
+
+# Hapus Kegiatan
+@app.route('/admin/hapus_kegiatan/<int:id>', methods=['GET'])
+@login_required
+def hapus_kegiatan(id):
+    event = Event.query.get_or_404(id)
+    db.session.delete(event)
+    db.session.commit()
+    flash('Kegiatan berhasil dihapus!', 'danger')
+    return redirect(url_for('admin_manajemen_kegiatan'))
+
+@app.route('/admin/detail_kegiatan/<int:id>')
+@login_required
+def detail_kegiatan(id):
+    event = Event.query.get_or_404(id)
+    return render_template("detail_kegiatan.html", event=event)
 
 @app.route('/admin/kriteria')
+@login_required
+@admin_required
 def admin_kriteria():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('data_kriteria.html', sidebar_state=sidebar_state, user=users, time=time)
     
 @app.route('/admin/pembobotan_kriteria')
+@login_required
+@admin_required
 def admin_pembobotan_kriteria():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('pembobotan_kriteria.html', sidebar_state=sidebar_state, user=users, time=time)
 
 @app.route('/admin/peserta')
+@login_required
+@admin_required
 def admin_peserta():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('data_peserta.html', sidebar_state=sidebar_state, user=users, time=time)
     
 @app.route('/admin/hasil_seleksi')
+@login_required
+@admin_required
 def admin_hasil_seleksi():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('hasil_seleksi.html', sidebar_state=sidebar_state, user=users, time=time)
 
 @app.route('/admin/notifikasi')
+@login_required
+@admin_required
 def admin_notifikasi():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('notifikasi.html', sidebar_state=sidebar_state, user=users, time=time)
     
 @app.route('/admin/log_aktivitas')
+@login_required
+@admin_required
 def admin_log_aktivitas():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('log_aktivity.html', sidebar_state=sidebar_state, user=users, time=time)
 
 @app.route('/admin/settings')
+@login_required
+@admin_required
 def admin_settings():
-    ...
+    sidebar_state = current_user.sidebar_state or 'expanded'
+    users = Users.query.count()
+    return render_template('settings.html', sidebar_state=sidebar_state, user=users, time=time)
+    
+@app.route('/penilai/dashboard')
+@login_required
+def penilai_dashboard():
+    if current_user.level != 'penilai':
+        flash("Anda tidak memiliki akses ke halaman ini.", "error")
+        return redirect(url_for('index'))
+
+    # Contoh data yang bisa ditampilkan di dashboard penilai
+    data_peserta = Participants.query.all()  # Ambil semua peserta
+    total_peserta = Participants.query.count()
+    total_penilai = Users.query.filter_by(level='penilai').count()
+
+    return render_template(
+        'penilai/dashboard.html',
+        data_peserta=data_peserta,
+        total_peserta=total_peserta,
+        total_penilai=total_penilai
+    )
+
+@app.route('/peserta/dashboard')
+@login_required
+def peserta_dashboard():
+    if current_user.level != 'peserta':
+        flash("Anda tidak memiliki akses ke halaman ini.", "error")
+        return redirect(url_for('index'))
+
+    # Contoh data untuk peserta
+    biodata = Participants.query.filter_by(user_id=current_user.id).first()
+    status_seleksi = biodata.status if biodata else "Belum ada status"
+    nilai_akhir = biodata.nilai if biodata else None
+
+    return render_template(
+        'peserta/dashboard.html',
+        biodata=biodata,
+        status_seleksi=status_seleksi,
+        nilai_akhir=nilai_akhir
+    )
 
 @app.route('/logout/')
 def logout():

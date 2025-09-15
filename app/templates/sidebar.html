@@ -1,20 +1,19 @@
 <!-- sidebar.html -->
-<div x-data="sidebarState()" class="flex">
+<div class="flex">
   <aside
-    id="sidebar"
-    :class="sidebarOpen ? 'w-[15%]' : 'w-[4%]'"
+    :class="$store.sidebar.open ? 'w-[15%]' : 'w-[5%]'"
     class="transition-all duration-300 h-full border-r fixed z-50 {{ 'dark:bg-gray-900 border-gray-200 dark:border-gray-700' if current_theme == 'dark' else 'bg-gray-100' }}"
   >
     <div class="flex items-center justify-around h-20 shadow-md">
       <span
-        x-show="sidebarOpen"
+        x-show="$store.sidebar.open"
         x-transition
         class="text-xl font-bold truncate {{ 'text-gray-800 dark:text-white' if current_theme == 'dark' else 'text-gray-200 dark:text-black'}}"
         >{{ 'SPK Pramuka' if current_lang == 'id' else 'Scout DSS' }}</span
       >
       <button
-        @click="toggleSidebar()"
-        class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
+        @click="$store.sidebar.toggle()"
+        class="p-2 rounded cursor-pointer {{ 'hover:bg-gray-200 dark:hover:bg-gray-800' if current_theme == 'dark' else 'hover:bg-gray-300 dark:hover:bg-gray-300'}}"
       >
         <i
           class="fas fa-bars 
@@ -36,12 +35,12 @@
               class="fa-solid fa-house w-5 {{ 'text-gray-700 dark:text-gray-300' if current_theme == 'dark' else 'text-black'}}"
             ></i>
             <span
-              :class="isCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'"
+              x-show="$store.sidebar.open"
               class="{{ 'text-gray-800 dark:text-gray-200' if current_theme == 'dark' else 'text-black'}}"
               >{{ 'Beranda' if current_lang == 'id' else 'Home' }}</span
             >
             <span
-              x-show="!sidebarOpen"
+              x-show="!$store.sidebar.open"
               class="absolute left-full ml-2 px-2 py-1 text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-99 {{ 'bg-gray-800 text-white' if current_theme == 'dark' else 'bg-gray-200 text-black' }}"
             >
               {{ 'Beranda' if current_lang == 'id' else 'Home' }}
@@ -53,14 +52,13 @@
         'User Management'), ('admin_manajemen_kegiatan', 'fa-solid
         fa-calendar-days', 'Manajemen Seleksi', 'Selection Management'),
         ('admin_kriteria', 'fas fa-sliders-h', 'Data Kriteria', 'Criteria
-        Data'), ('admin_pembobotan_kriteria', 'fa-solid fa-scale-balanced',
-        'Pembobotan Kriteria', 'Criteria Weighting'), ('admin_peserta', 'fas
-        fa-user-check', 'Data Peserta', 'Participant Data'),
-        ('admin_notifikasi', 'fas fa-bell', 'Notifikasi', 'Notifications'),
-        ('admin_hasil_seleksi', 'fa-solid fa-square-poll-vertical', 'Hasil
-        Seleksi', 'Selection Results'), ('admin_log_aktivitas', 'fa-solid
-        fa-chart-line', 'Log Aktivitas', 'Activity Log'), ('admin_settings',
-        'fas fa-cogs', 'Pengaturan', 'Settings') ] %}
+        Data'), ('admin_peserta', 'fas fa-user-check', 'Data Peserta',
+        'Participant Data'), ('admin_notifikasi', 'fas fa-bell', 'Notifikasi',
+        'Notifications'), ('admin_hasil_seleksi', 'fa-solid
+        fa-square-poll-vertical', 'Hasil Seleksi', 'Selection Results'),
+        ('admin_log_aktivitas', 'fa-solid fa-chart-line', 'Log Aktivitas',
+        'Activity Log'), ('admin_settings', 'fas fa-cogs', 'Pengaturan',
+        'Settings') ] %}
         <li>
           <a
             href="{{ url_for(menu[0]) }}"
@@ -70,13 +68,13 @@
               class="{{ menu[1] }} w-5 {{ 'text-gray-700 dark:text-gray-300' if current_theme == 'dark' else 'text-black'}}"
             ></i>
             <span
-              x-show="sidebarOpen"
+              x-show="$store.sidebar.open"
               class="{{ 'text-gray-800 dark:text-gray-200' if current_theme == 'dark' else 'text-black'}}"
             >
               {{ menu[2] if current_lang == 'id' else menu[3] }}
             </span>
             <span
-              x-show="!sidebarOpen"
+              x-show="!$store.sidebar.open"
               class="absolute left-full ml-2 px-2 py-1 text-sm rounded shadow-lg 
              opacity-0 group-hover:opacity-100 transition-opacity duration-300
              whitespace-nowrap z-50
@@ -92,14 +90,14 @@
         <li>
           <a
             href="{{ url_for('logout') }}"
-            class="flex items-center gap-3 p-2 rounded-lg relative group text-red-500 transition hover:bg-red-100 dark:hover:bg-red-900"
+            class="flex items-center gap-3 p-2 rounded-lg relative group text-red-500 transition hover:bg-red-100 dark:hover:bg-red-900 hover:text-white"
           >
             <i class="fas fa-sign-out-alt w-5"></i>
-            <span x-show="sidebarOpen"
+            <span x-show="$store.sidebar.open"
               >{{ 'Keluar' if current_lang == 'id' else 'Logout' }}</span
             >
             <span
-              x-show="!sidebarOpen"
+              x-show="!$store.sidebar.open"
               class="absolute left-full ml-2 px-2 py-1 text-sm rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-99 {{ 'bg-gray-800 text-white' if current_theme == 'dark' else 'bg-gray-200 text-black' }}"
             >
               {{ 'Keluar' if current_lang == 'id' else 'Logout' }}

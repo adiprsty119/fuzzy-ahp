@@ -1,0 +1,35 @@
+<form method="POST">
+  <label>Nama Kegiatan</label>
+  <input
+    type="text"
+    name="nama_kegiatan"
+    value="{{ event.nama_kegiatan }}"
+    required
+  />
+
+  <label>Jenis Kegiatan</label>
+  <input
+    type="text"
+    name="jenis_kegiatan"
+    value="{{ event.jenis_kegiatan }}"
+    required
+  />
+
+  <label>Waktu Pelaksanaan</label>
+  <input
+    type="datetime-local"
+    name="waktu_pelaksanaan"
+    value="{{ event.waktu_pelaksanaan|datetime }}"
+    required
+  />
+
+  <label>Tempat Pelaksanaan</label>
+  <input
+    type="text"
+    name="tempat_pelaksanaan"
+    value="{{ event.tempat_pelaksanaan }}"
+    required
+  />
+
+  <button type="submit">Update</button>
+</form>

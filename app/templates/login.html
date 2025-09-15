@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_lang }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>
       {{ 'Halaman Login' if current_lang == 'id' else 'Login Page' }}
     </title>
@@ -23,12 +24,14 @@
     />
   </head>
 
-  <body class="font-sans bg-gray-100 m-0 p-0 flex justify-center items-center">
+  <body
+    class="font-sans m-0 p-0 flex justify-center items-center {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-gray-100' }}"
+  >
     <div
-      class="bg-white mt-24 p-10 md:px-16 rounded-[12px] shadow-lg w-full max-w-[35rem]"
+      class="mt-14 p-10 md:px-16 rounded-[12px] shadow-lg w-full max-w-[35rem] {{ 'bg-gray-900 transition' if current_theme == 'dark' else 'bg-white' }}"
     >
       <h1
-        class="text-center text-gray-800 mb-12 text-3xl md:text-2xl font-semibold"
+        class="text-center mb-12 text-3xl md:text-2xl font-semibold {{ 'text-white' if current_theme == 'dark' else 'text-gray-700' }}"
       >
         {{ 'Masuk ke Akun' if current_lang == 'id' else 'Login Account' }}
       </h1>
@@ -50,7 +53,8 @@
       </div>
       <div class="flex items-center justify-center my-5 mb-6">
         <hr class="flex-grow border-t border-gray-300 mx-2.5" />
-        <span class="text-[0.9rem] text-gray-600"
+        <span
+          class="text-[0.9rem] {{ 'text-white' if current_theme == 'dark' else 'text-gray-600' }}"
           >{{ 'Atau sudah punya akun?' if current_lang == 'id' else 'Or an
           account?' }}</span
         >
@@ -70,8 +74,12 @@
 
       <form id="loginForm" action="/login" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <!-- Username -->
         <div class="mb-4">
-          <label class="block mb-2 text-xl text-gray-800" for="username">
+          <label
+            class="block mb-2 text-xl {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+            for="username"
+          >
             Username:</label
           >
           <input
@@ -80,11 +88,14 @@
             name="username"
             placeholder="Username"
             required
-            class="w-full p-3 text-[1rem] border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+            class="w-full p-3 text-[1rem] border rounded-md outline-none box-border {{ 'bg-white focus:border-yellow-500 hover:ring-2 hover:ring-yellow-500' if current_theme == 'dark' else 'bg-gray-100 focus:border-green-500 focus:ring-2 focus:ring-green-300' }}"
           />
         </div>
+        <!-- Password -->
         <div class="mb-4">
-          <label class="block mb-2 text-xl text-gray-800" for="password"
+          <label
+            class="block mb-2 text-xl {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+            for="password"
             >{{ 'Kata Sandi:' if current_lang == 'id' else 'Password:' }}</label
           >
           <input
@@ -93,8 +104,39 @@
             name="password"
             placeholder="{{ 'Kata Sandi' if current_lang == 'id' else 'Password' }}"
             required
-            class="w-full p-3 text-[1rem] border border-gray-300 rounded-md outline-none box-border focus:border-green-500 focus:ring-2 focus:ring-green-300"
+            class="w-full p-3 text-[1rem] border rounded-md outline-none box-border {{ 'bg-white focus:border-yellow-500 hover:ring-2 hover:ring-yellow-500' if current_theme == 'dark' else 'bg-gray-100 focus:border-green-500 focus:ring-2 focus:ring-green-300' }}"
           />
+        </div>
+        <!-- Role Dropdown -->
+        <div class="mb-4">
+          <label
+            class="block mb-2 text-xl {{ 'text-white' if current_theme == 'dark' else 'text-gray-800' }}"
+            for="role"
+          >
+            {{ 'Masuk sebagai:' if current_lang == 'id' else 'Login as:' }}
+          </label>
+          <select
+            id="role"
+            name="role"
+            required
+            class="w-full p-3 text-[1rem] border rounded-md outline-none box-border {{ 'bg-white focus:border-yellow-500 hover:ring-2 hover:ring-yellow-500' if current_theme == 'dark' else 'bg-gray-100 focus:border-green-500 focus:ring-2 focus:ring-green-300' }}"
+          >
+            <option
+              value=""
+              disabled
+              selected
+              class="text-gray-950 font-semibold"
+            >
+              {{ 'Pilih Role' if current_lang == 'id' else 'Select Role' }}
+            </option>
+            <option value="admin" class="text-gray-950">Admin</option>
+            <option value="penilai" class="text-gray-950">
+              {{ 'Penilai' if current_lang == 'id' else 'Evaluator' }}
+            </option>
+            <option value="peserta" class="text-gray-950">
+              {{ 'Peserta' if current_lang == 'id' else 'Participant' }}
+            </option>
+          </select>
         </div>
         <p class="text-[0.9rem] mt-2 mb-6">
           <a
@@ -113,7 +155,9 @@
           {{ 'Masuk' if current_lang == 'id' else 'Login' }}
         </button>
         <div class="w-full flex justify-between">
-          <p class="text-[0.9rem] mt-6">
+          <p
+            class="text-[0.9rem] mt-6 {{ 'text-white' if current_theme == 'dark' else 'text-black' }}"
+          >
             {{ "Belum punya akun?" if current_lang == 'id' else "Don't have an
             account?" }}
             <a

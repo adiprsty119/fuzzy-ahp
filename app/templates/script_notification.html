@@ -1,0 +1,67 @@
+<script>
+  window.isFirstTimeLogin = {{ 'true' if first_time_login else 'false' }};
+  const toggleButton = document.getElementById("notification-toggle");
+  const notifBox = document.getElementById("notification-box");
+
+  // Toggle show/hide box
+  toggleButton?.addEventListener("click", function (event) {
+    event.stopPropagation();
+    const isOpen = notifBox.classList.contains("opacity-100");
+
+    if (isOpen) {
+      notifBox.classList.remove("opacity-100", "pointer-events-auto", "scale-100", "translate-x-0");
+      notifBox.classList.add("opacity-0", "pointer-events-none", "scale-95", "translate-x-full");
+    } else {
+      notifBox.classList.remove("opacity-0", "pointer-events-none", "scale-95", "translate-x-full");
+      notifBox.classList.add("opacity-100", "pointer-events-auto", "scale-100", "translate-x-0");
+    }
+  });
+
+  // Klik di luar notif box → tutup
+  document.addEventListener("click", function (event) {
+    if (
+      notifBox &&
+      !notifBox.contains(event.target) &&
+      !toggleButton?.contains(event.target)
+    ) {
+      notifBox.classList.remove(
+        "opacity-100", "pointer-events-auto", "scale-100", "translate-x-0"
+      );
+      notifBox.classList.add(
+        "opacity-0", "pointer-events-none", "scale-95", "translate-x-full"
+      );
+    }
+  });
+
+  // Flash → tombol "Tutup" → tampil notifBox selama 6 detik
+  window.closeFlashAndShowNotifBox = function (element) {
+    const flashOverlay = element.closest(".flash-wrapper");
+
+    if (flashOverlay) flashOverlay.classList.add("hidden");
+
+    if (window.isFirstTimeLogin && notifBox) {
+      console.log("🚀 Login pertama kali, tampilkan notifBox selama 6 detik");
+
+      notifBox.classList.remove(
+        "opacity-100", "pointer-events-auto", "scale-100", "translate-x-0"
+      );
+      notifBox.classList.add(
+        "opacity-0", "pointer-events-none", "scale-95", "translate-x-full"
+      );
+      notifBox.style.transform = "none";
+      console.log("[DEBUG] notifBox.classList after show:", notifBox.classList);
+
+      setTimeout(() => {
+        notifBox.classList.remove(
+          "opacity-0", "pointer-events-none", "scale-95", "translate-x-full"
+        );
+        notifBox.classList.add(
+          "opacity-100", "pointer-events-auto", "scale-100", "translate-x-0"
+        );
+        fetch("/clear-first-login-flag", { method: "POST" });
+      }, 200);
+    } else {
+      console.log("ℹ️ Bukan login pertama → notifBox tidak muncul otomatis");
+    }
+  };
+</script>
