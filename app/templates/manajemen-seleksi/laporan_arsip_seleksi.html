@@ -1,0 +1,132 @@
+<!-- Laporan & Arsip Seleksi -->
+<div
+  x-show="page === 'reports_archives'"
+  x-transition:enter="transition ease-out duration-500"
+  x-transition:enter-start="opacity-0 translate-y-5"
+  x-transition:enter-end="opacity-100 translate-y-0"
+  x-transition:leave="transition ease-in duration-300"
+  x-transition:leave-start="opacity-100 translate-y-0"
+  x-transition:leave-end="opacity-0 translate-y-5"
+  class="p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-md"
+>
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">
+      {{ 'Laporan & Arsip Seleksi' if current_lang == 'id' else 'Selection
+      Reports & Archives' }}
+    </h2>
+    <button
+      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium flex items-center gap-2"
+    >
+      <i class="fa-solid fa-clone"></i>
+      {{ 'Tambah Arsip' if current_lang == 'id' else 'Add Archive' }}
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left text-gray-600 dark:text-gray-300">
+      <thead class="text-xs uppercase bg-gray-100 dark:bg-gray-800">
+        <tr>
+          <th scope="col" class="px-4 py-3">No</th>
+          <th scope="col" class="px-4 py-3">
+            {{ 'Periode' if current_lang == 'id' else 'Period' }}
+          </th>
+          <th scope="col" class="px-4 py-3">
+            {{ 'Tanggal Arsip' if current_lang == 'id' else 'Archive Date' }}
+          </th>
+          <th scope="col" class="px-4 py-3">File</th>
+          <th scope="col" class="px-4 py-3 text-right">
+            {{ 'Aksi' if current_lang == 'id' else 'Action' }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Row contoh -->
+        <tr
+          class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+        >
+          <td class="px-4 py-3">1</td>
+          <td class="px-4 py-3 font-medium">Seleksi 2024</td>
+          <td class="px-4 py-3">12 Jan 2025</td>
+          <td class="px-4 py-3">laporan_2024.pdf</td>
+          <td class="px-4 py-3 text-right flex gap-2 justify-end">
+            <button
+              class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg"
+            >
+              <i class="fa-solid fa-eye"></i>
+              {{ 'Lihat' if current_lang == 'id' else 'View' }}
+            </button>
+            <button
+              class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded-lg"
+            >
+              <i class="fa-solid fa-download"></i>
+              {{ 'Unduh' if current_lang == 'id' else 'Download' }}
+            </button>
+            <button
+              class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg"
+            >
+              {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
+            </button>
+          </td>
+        </tr>
+        <!-- Row contoh -->
+        <tr
+          class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+        >
+          <td class="px-4 py-3">2</td>
+          <td class="px-4 py-3 font-medium">Seleksi 2023</td>
+          <td class="px-4 py-3">10 Jan 2024</td>
+          <td class="px-4 py-3">laporan_2023.pdf</td>
+          <td class="px-4 py-3 text-right flex gap-2 justify-end">
+            <button
+              class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg"
+            >
+              <i class="fa-solid fa-eye"></i>
+              {{ 'Lihat' if current_lang == 'id' else 'View' }}
+            </button>
+            <button
+              class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded-lg"
+            >
+              <i class="fa-solid fa-download"></i>
+              {{ 'Unduh' if current_lang == 'id' else 'Download' }}
+            </button>
+            <button
+              class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg"
+            >
+              <i class="fa-solid fa-trash"></i>
+              {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="flex justify-between items-center mt-4">
+    <span class="text-sm text-gray-500 dark:text-gray-400"
+      >{{ 'Menampilkan 1–5 dari 20 arsip' if current_lang == 'id' else 'Delete'
+      }}</span
+    >
+    <div class="flex gap-2">
+      <button
+        class="px-3 py-1 text-sm border rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 cursor-pointer"
+      >
+        {{ 'Sebelumnya' if current_lang == 'id' else 'Previous' }}
+      </button>
+      <button
+        class="px-3 py-1 text-sm border rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 cursor-pointer"
+      >
+        {{ 'Berikutnya' if current_lang == 'id' else 'Next' }}
+      </button>
+    </div>
+  </div>
+  <button
+    @click="page = 'main'; $store.page.breadcrumbs = current_lang === 'id' ? ['Manajemen Seleksi'] : ['Selection Management']"
+    class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer mt-8"
+  >
+    <i class="fa-solid fa-backward"></i>
+    {{ 'Kembali' if current_lang == 'id' else 'Back' }}
+  </button>
+</div>

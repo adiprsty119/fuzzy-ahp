@@ -42,8 +42,30 @@ class Notification(db.Model):
 
 # Access to table participants
 class Participants(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nama = db.Column(db.String(100))
+    __tablename__ = 'participants'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nama_lengkap = db.Column(db.String(100), nullable=True)
+    tanggal_lahir = db.Column(db.Date, nullable=False)
+    alamat_tinggal = db.Column(db.String(255), nullable=False)
+    golongan = db.Column(db.Enum('siaga', 'penggalang', 'penegak', 'pandega', name='golongan_enum'), nullable=False)
+    tingkatan = db.Column(db.Enum('siaga mula', 'siaga tata', 'siaga bantu', 'siaga garuda', 'penggalang ramu', 'penggalang rakit', 'penggalang terap', 'penggalang garuda', 'penegak bantara', 'penegak laksana', 'penegak garuda', 'pandega', 'pandega garuda', name='tingkatan_enum'), nullable=False)
+    asal_gudep = db.Column(db.String(100), nullable=False)
+    asal_kwarran = db.Column(db.String(100), nullable=False)
+    asal_kwarcab = db.Column(db.String(100), nullable=False)
+    asal_kwarda = db.Column(db.String(100), nullable=False)
+    usia = db.Column(db.Integer, nullable=False)
+    jenis_kelamin = db.Column(
+        db.Enum('laki-laki', 'perempuan', '', '', name='jenis_kelamin_enum'),
+        nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    nomor_hp = db.Column(db.String(100), nullable=False)
+    foto = db.Column(db.String(100), nullable=False)
+
+    # kolom yang selalu berisi "peserta"
+    level = db.Column(db.String(50), nullable=False, default="peserta", server_default="peserta")
+
+    def __repr__(self):
+        return f"<Participant {self.nama_lengkap}>"
 
 # Access to table tb_kriteria
 class Criteria(db.Model):
@@ -85,9 +107,13 @@ class HasilSeleksi(db.Model):
 class LogAktivitas(db.Model):
     __tablename__ = 'tb_log_aktivitas'
     id_log = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_users = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     aktivitas = db.Column(db.Text, nullable=False)
+    ip_address = db.Column(db.String(50))
+    user_agent = db.Column(db.String(255))
     timestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
+    
+    user = db.relationship('Users', backref='logs')
 
 
 # Access to table tb_informasi

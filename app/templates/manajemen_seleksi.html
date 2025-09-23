@@ -38,7 +38,7 @@
     {% include 'script_theme.html' %}
   </head>
   <body
-    x-data="{ ready: false }"
+    x-data="{ ready: false, page: 'main', current_lang: '{{ current_lang }}' }"
     x-init="ready = true"
     :class="{ 'dark': $store.theme?.isDark }"
     x-bind:class="{
@@ -71,11 +71,33 @@
 
             <!-- Content -->
             <div class="container mx-auto p-6">
-              <h1 class="text-2xl font-bold mb-8">
-                {{ 'Manajemen Seleksi' if current_lang == 'id' else 'Selection
-                Management' }}
+              <h1
+                class="text-2xl font-bold mb-8 flex items-center gap-2 transition-all duration-1000"
+              >
+                <template
+                  x-for="(crumb, index) in $store.page.breadcrumbs"
+                  :key="index"
+                >
+                  <span>
+                    <span x-text="crumb"></span>
+                    <span x-show="index < $store.page.breadcrumbs.length - 1">
+                      →
+                    </span>
+                  </span>
+                </template>
               </h1>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              <!-- === Grid Semua Fitur (Default) === -->
+              <div
+                x-show="page === 'main'"
+                x-transition:enter="transition ease-out duration-500"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-300"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
                 <!-- Konfigurasi Seleksi -->
                 <div
                   class="bg-white shadow-md rounded-2xl p-5 flex flex-col items-start transition {{ 'dark:bg-gray-900 hover:shadow-yellow-300' if current_theme == 'dark' else 'dark:bg-gray-100 hover:shadow-gray-700' }}"
@@ -95,6 +117,13 @@
                     and selection criteria.' }}
                   </p>
                   <button
+                    @click="
+                      page = 'config';
+                      $store.page.breadcrumbs =
+                        current_lang === 'id'
+                          ? ['Manajemen Seleksi', 'Konfigurasi Seleksi']
+                          : ['Selection Management', 'Selection Configuration']
+                    "
                     class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
                   >
                     <i class="fa-solid fa-gear mr-2"></i>
@@ -122,6 +151,13 @@
                     status.' }}
                   </p>
                   <button
+                    @click="
+                      page = 'peserta';
+                      $store.page.breadcrumbs =
+                        current_lang === 'id'
+                          ? ['Manajemen Seleksi', 'Data Peserta Seleksi']
+                          : ['Selection Management', 'Selection Participants Data']
+                    "
                     class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
                   >
                     <i class="fa-solid fa-gear mr-2"></i>
@@ -150,6 +186,13 @@
                     progress.' }}
                   </p>
                   <button
+                    @click="
+                      page = 'penugasan';
+                      $store.page.breadcrumbs =
+                        current_lang === 'id'
+                          ? ['Manajemen Seleksi', 'Penugasan Penilai']
+                          : ['Selection Management', 'Evaluator Assignment']
+                    "
                     class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
                   >
                     <i class="fa-solid fa-gear mr-2"></i>
@@ -178,6 +221,13 @@
                     process automatic calculation.' }}
                   </p>
                   <button
+                    @click="
+                      page = 'assessment_management';
+                      $store.page.breadcrumbs =
+                        current_lang === 'id'
+                          ? ['Manajemen Seleksi', 'Manajemen Penilaian']
+                          : ['Selection Management', 'Assessment Management']
+                    "
                     class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
                   >
                     <i class="fa-solid fa-gear mr-2"></i>
@@ -206,6 +256,13 @@
                     rankings and print selection reports.' }}
                   </p>
                   <button
+                    @click="
+                      page = 'selection_results';
+                      $store.page.breadcrumbs =
+                        current_lang === 'id'
+                          ? ['Manajemen Seleksi', 'Hasil Seleksi']
+                          : ['Selection Management', 'Selection Results']
+                    "
                     class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 active:scale-95 transition-all shadow dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer"
                   >
                     <i class="fa-solid fa-eye mr-2"></i>
@@ -232,6 +289,13 @@
                     reports and archives of previous selections.' }}
                   </p>
                   <button
+                    @click="
+                      page = 'reports_archives';
+                      $store.page.breadcrumbs =
+                        current_lang === 'id'
+                          ? ['Manajemen Seleksi', 'Laporan & Arsip Seleksi']
+                          : ['Selection Management', 'Reports & Archives']
+                    "
                     class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-xl bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer"
                   >
                     <i class="fa-solid fa-gear mr-2"></i>
@@ -239,11 +303,29 @@
                   </button>
                 </div>
               </div>
+
+              <!-- === (Tabs) === -->
+              {%include 'manajemen-seleksi/konfigurasi_seleksi.html'%} {%include
+              'manajemen-seleksi/data_peserta_seleksi.html'%} {%include
+              'manajemen-seleksi/penugasan_penilai.html' %} {%include
+              'manajemen-seleksi/manajemen_penilaian.html'%} {%include
+              'manajemen-seleksi/hasil_seleksi.html'%} {%include
+              'manajemen-seleksi/laporan_arsip_seleksi.html'%}
             </div>
           </section>
         </main>
       </div>
     </div>
+
+    <script>
+      document.addEventListener("alpine:init", () => {
+        const lang = "{{ current_lang }}";
+        Alpine.store("page", {
+          breadcrumbs:
+            lang === "id" ? ["Manajemen Seleksi"] : ["Selection Management"],
+        });
+      });
+    </script>
 
     <!-- Animation & Notification Script -->
     {% include 'script_animation.html' %} {% include 'script_notification.html'

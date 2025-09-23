@@ -1,0 +1,150 @@
+<div
+  x-show="page === 'peserta'"
+  x-transition:enter="transition ease-out duration-500"
+  x-transition:enter-start="opacity-0 translate-y-5"
+  x-transition:enter-end="opacity-100 translate-y-0"
+  x-transition:leave="transition ease-in duration-300"
+  x-transition:leave-start="opacity-100 translate-y-0"
+  x-transition:leave-end="opacity-0 translate-y-5"
+  class="space-y-6"
+>
+  <!-- Judul -->
+  <h1 class="text-2xl font-bold">
+    {{ 'Data Peserta Seleksi' if current_lang == 'id' else 'Selection
+    Participants Data' }}
+  </h1>
+
+  <!-- Toolbar -->
+  <div class="flex justify-between items-center">
+    <div class="flex space-x-2">
+      <input
+        type="text"
+        placeholder="Cari peserta..."
+        class="px-3 py-2 border rounded-lg w-64"
+        x-model="search"
+      />
+      <select class="px-3 py-2 border rounded-lg" x-model="filter">
+        <option value="">
+          {{ 'Semua Golongan' if current_lang == 'id' else 'All Groups' }}
+        </option>
+        <option value="siaga">
+          {{ 'Siaga' if current_lang == 'id' else 'Cub Scout' }}
+        </option>
+        <option value="penggalang">
+          {{ 'Penggalang' if current_lang == 'id' else 'Boy Scout' }}
+        </option>
+        <option value="penegak">
+          {{ 'Penegak' if current_lang == 'id' else 'Rover Scout' }}
+        </option>
+        <option value="pandega">
+          {{ 'Pandega' if current_lang == 'id' else 'Ranger Scout' }}
+        </option>
+      </select>
+    </div>
+    <button class="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer">
+      {{ '+ Tambah Peserta' if current_lang == 'id' else '+ Add Participant' }}
+    </button>
+  </div>
+
+  <!-- Tabel Peserta -->
+  <div class="overflow-x-auto">
+    <table class="w-full border rounded-lg text-sm">
+      <thead class="bg-gray-100 dark:bg-gray-800">
+        <tr>
+          <th class="px-3 py-2">ID</th>
+          <th class="px-3 py-2">
+            {{ 'Nama' if current_lang == 'id' else 'Name' }}
+          </th>
+          <th class="px-3 py-2">
+            {{ 'Golongan' if current_lang == 'id' else 'Group' }}
+          </th>
+          <th class="px-3 py-2">
+            {{ 'Tingkatan' if current_lang == 'id' else 'Rank' }}
+          </th>
+          <th class="px-3 py-2">
+            {{ 'Gugus Depan' if current_lang == 'id' else 'Scout Troop' }}
+          </th>
+          <th class="px-3 py-2">
+            {{ 'Jenis Kelamin' if current_lang == 'id' else 'Gender' }}
+          </th>
+          <th class="px-3 py-2">
+            {{ 'Usia' if current_lang == 'id' else 'Age' }}
+          </th>
+          <th class="px-3 py-2">
+            {{ 'No HP' if current_lang == 'id' else 'Phone Number' }}
+          </th>
+          <th class="px-3 py-2">Level</th>
+          <th class="px-3 py-2">
+            {{ 'Aksi' if current_lang == 'id' else 'Action' }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="p in participants" :key="p.id">
+          <tr class="border-t">
+            <td class="px-3 py-2" x-text="p.id"></td>
+            <td class="px-3 py-2" x-text="p.nama_lengkap"></td>
+            <td class="px-3 py-2" x-text="p.golongan"></td>
+            <td class="px-3 py-2" x-text="p.tingkatan"></td>
+            <td class="px-3 py-2" x-text="p.asal_gudep"></td>
+            <td class="px-3 py-2" x-text="p.jenis_kelamin"></td>
+            <td class="px-3 py-2" x-text="p.usia"></td>
+            <td class="px-3 py-2" x-text="p.nomor_hp"></td>
+            <td class="px-3 py-2" x-text="p.level"></td>
+            <td class="px-3 py-2 space-x-2">
+              <button class="px-2 py-1 bg-blue-500 text-white rounded">
+                {{ 'Detail' if current_lang == 'id' else 'Details' }}
+              </button>
+              <button class="px-2 py-1 bg-yellow-500 text-white rounded">
+                Edit
+              </button>
+              <button class="px-2 py-1 bg-red-500 text-white rounded">
+                {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
+              </button>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+  <button
+    @click="page = 'main'; $store.page.breadcrumbs = current_lang === 'id' ? ['Manajemen Seleksi'] : ['Selection Management']"
+    class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer"
+  >
+    <i class="fa-solid fa-backward"></i>
+    {{ 'Kembali' if current_lang == 'id' else 'Back' }}
+  </button>
+</div>
+
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.data("pesertaData", () => ({
+      search: "",
+      filter: "",
+      participants: [
+        {
+          id: 1,
+          nama_lengkap: "Adi Prasetyo",
+          golongan: "Penegak",
+          tingkatan: "Bantara",
+          asal_gudep: "Gudep 01.001",
+          jenis_kelamin: "Laki-laki",
+          usia: 21,
+          nomor_hp: "08123456789",
+          level: "peserta",
+        },
+        {
+          id: 2,
+          nama_lengkap: "Nurul Widhanita",
+          golongan: "Pandega",
+          tingkatan: "Pandega",
+          asal_gudep: "Gudep 01.002",
+          jenis_kelamin: "Perempuan",
+          usia: 22,
+          nomor_hp: "08234567890",
+          level: "peserta",
+        },
+      ],
+    }));
+  });
+</script>

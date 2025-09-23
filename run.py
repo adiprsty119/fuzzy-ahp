@@ -17,12 +17,14 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import current_user, LoginManager, login_user, login_required
 from functools import wraps
+from app.utils.utils import log_activity
 import random, string
 import logging
 import secrets
 import time
 import os
 import re
+import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -57,6 +59,13 @@ def load_user(user_id):
 # Buat folder uploads jika belum ada
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+    
+# Tentukan folder upload (misalnya di static/uploads)
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static/uploads')
+ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 def allowed_file(filename):
@@ -757,8 +766,122 @@ def admin_required(f):
 @admin_required
 def admin_users():
     sidebar_state = current_user.sidebar_state or 'expanded'
-    users = Users.query.count()
-    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, user=users, time=time)
+    users = Users.query.all()
+    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, users=users, time=time)
+
+@app.route('/admin/add_user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_add_user():
+    sidebar_state = current_user.sidebar_state or 'expanded'
+
+    if request.method == 'POST':
+        # Ambil data dari form
+        nama_lengkap = request.form.get('nama_lengkap')
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role = request.form.get('role')  # misalnya: 'admin' atau 'user'
+
+        # Hash password
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+        # Buat objek user baru
+        new_user = Users(
+            nama_lengkap=nama_lengkap,
+            username=username,
+            email=email,
+            password=hashed_password,
+            role=role
+        )
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Pengguna baru berhasil ditambahkan!', 'success')
+            return redirect(url_for('admin_users'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Terjadi kesalahan: {e}', 'danger')
+    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, time=time)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/admin/import_users', methods=['POST'])
+@login_required
+@admin_required
+def admin_import_users():
+    if 'file' not in request.files:
+        flash('Tidak ada file yang diupload!', 'error')
+        return redirect(url_for('admin_users'))
+
+    file = request.files['file']
+    print(f"[DEBUG] Nama file upload: {file.filename}")
+    
+    if file.filename == '':
+        flash('Nama file tidak valid!', 'error')
+        return redirect(url_for('admin_users'))
+    
+    # Debug ekstensi sebelum dicek
+    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+    print(f"[DEBUG] Ekstensi file: {ext}")
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        print(f"[DEBUG] File berhasil disimpan di: {filepath}")
+
+        try:
+            # Baca file dengan pandas (deteksi otomatis CSV/Excel)
+            if filename.endswith('.csv'):
+                df = pd.read_csv(filepath)
+            else:
+                df = pd.read_excel(filepath)
+
+            # Normalisasi nama kolom
+            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+
+            # Kolom wajib
+            required_cols = ['nama_lengkap', 'username', 'email', 'role']
+            for col in required_cols:
+                if col not in df.columns:
+                    flash(f'Kolom {col} tidak ditemukan dalam file!', 'error')
+                    return redirect(url_for('admin_users'))
+
+            # Import data
+            for _, row in df.iterrows():
+                print(f"[DEBUG] Proses row: {row.to_dict()}")
+                # skip kalau username sudah ada
+                if Users.query.filter_by(username=row['username']).first():
+                    continue  
+
+                # pakai password default kalau tidak ada di file
+                password = row['password'] if 'password' in df.columns and pd.notna(row['password']) else '123456'
+                hashed_password = generate_password_hash(str(password))
+
+                new_user = Users(
+                    nama_lengkap=row['nama_lengkap'],
+                    username=row['username'],
+                    email=row['email'],
+                    password=hashed_password,
+                    role=row['role']
+                )
+                db.session.add(new_user)
+                print(f"[DEBUG] User {row['username']} ditambahkan ke session.")
+            db.session.commit()
+            print("[DEBUG] Commit berhasil!")
+            flash('Data pengguna berhasil diimport!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            print(f"[ERROR] Commit gagal: {e}")
+            flash(f'Terjadi kesalahan saat import: {str(e)}', 'error')
+        return redirect(url_for('admin_users'))
+    else:
+        flash('Format file tidak diizinkan! Gunakan CSV atau Excel.', 'error')
+        return redirect(url_for('admin_users'))
+
+
 
 # Manajemen Kegiatan    
 @app.route('/admin/manajemen_kegiatan')

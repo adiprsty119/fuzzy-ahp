@@ -1,0 +1,577 @@
+<!-- Penugasan Penilai UI -->
+<div
+  x-show="page === 'penugasan' || page === 'assign' || page === 'penilai'"
+  x-transition:enter="transition ease-out duration-500"
+  x-transition:enter-start="opacity-0 translate-y-5"
+  x-transition:enter-end="opacity-100 translate-y-0"
+  x-transition:leave="transition ease-in duration-300"
+  x-transition:leave-start="opacity-100 translate-y-0"
+  x-transition:leave-end="opacity-0 translate-y-5"
+  class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg"
+  x-data="penugasanAssessor()"
+>
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h2 class="text-xl font-semibold">
+        <!-- label: pref to use store lang if present -->
+        <span
+          x-text="$store?.page?.lang === 'id' ? 'Penugasan Penilai' : 'Evaluator Assignment'"
+        ></span>
+      </h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        <span
+          x-text="$store?.page?.lang === 'id' ? 'Kelola penilai dan tugas penilaian' : 'Manage evaluators and their assignments'"
+        ></span>
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        @click="openAddAssessor = true"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer"
+      >
+        <i class="fa-solid fa-user-plus"></i>
+        <span
+          x-text="$store?.page?.lang === 'id' ? '+ Tambah Penilai' : 'Add Assessor'"
+        ></span>
+      </button>
+
+      <button
+        @click="exportAssignments()"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+      >
+        <i class="fa-solid fa-file-export"></i>
+        <span x-text="$store?.page?.lang === 'id' ? 'Export' : 'Export'"></span>
+      </button>
+
+      <button
+        @click="page = 'main'; $store.page.breadcrumbs = current_lang === 'id' ? ['Manajemen Seleksi'] : ['Selection Management']"
+        class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer"
+      >
+        <i class="fa-solid fa-backward"></i>
+        {{ 'Kembali' if current_lang == 'id' else 'Back' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Left column: Assessors list -->
+    <div class="col-span-1 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3
+          class="font-medium"
+          x-text="$store?.page?.lang === 'id' ? 'Daftar Penilai' : 'Assessors'"
+        ></h3>
+        <span
+          class="text-xs text-gray-500"
+          x-text="assessors.length + ' '+ ($store?.page?.lang === 'id' ? 'penilai' : 'assessors')"
+        ></span>
+      </div>
+
+      <template x-for="a in assessors" :key="a.id">
+        <button
+          @click="selectAssessor(a.id)"
+          :class="a.id === selectedAssessorId ? 'ring-2 ring-blue-500' : 'hover:shadow-md'"
+          class="w-full text-left p-3 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-start gap-3 cursor-pointer"
+        >
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold" x-text="a.name"></div>
+                <div class="text-xs text-gray-500" x-text="a.role"></div>
+              </div>
+              <div class="text-right">
+                <div
+                  class="text-sm font-medium"
+                  x-text="getAssignedCount(a.id) + ' / ' + totalParticipants"
+                ></div>
+                <div
+                  class="text-xs text-gray-400"
+                  x-text="getStatus(a.id)"
+                ></div>
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <div
+                class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden"
+              >
+                <div
+                  class="h-2 rounded-full bg-blue-500"
+                  :style="'width:' + Math.min(100, Math.round((getAssignedCount(a.id) / Math.max(1, totalParticipants)) * 100)) + '%'"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </button>
+      </template>
+
+      <div class="pt-3 border-t dark:border-gray-700">
+        <div
+          class="text-sm text-gray-500 mb-2"
+          x-text="$store?.page?.lang === 'id' ? 'Quick actions' : 'Quick actions'"
+        ></div>
+        <button
+          @click="assignAllToFirst()"
+          class="w-full px-3 py-2 bg-yellow-500 text-white rounded-lg mb-2 cursor-pointer"
+        >
+          <i class="fa-solid fa-list-check"></i>
+          {{ 'Tugaskan Semua ke yang Pertama' if current_lang == 'id' else
+          'Assign All to First' }}
+        </button>
+        <button
+          @click="clearAllAssignments()"
+          class="w-full px-3 py-2 bg-red-500 text-white rounded-lg cursor-pointer"
+        >
+          <i class="fa-solid fa-trash"></i>
+          {{ 'Hapus Semua' if current_lang == 'id' else 'Clear All' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: participants table + controls (span 3 cols) -->
+    <div class="col-span-3">
+      <!-- Controls -->
+      <div
+        class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-4"
+      >
+        <div class="flex items-center gap-2 w-full md:w-1/2">
+          <input
+            type="text"
+            placeholder="Search by name or id..."
+            x-model="search"
+            class="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+          />
+          <select
+            x-model="filterGroup"
+            class="px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+          >
+            <option
+              value=""
+              x-text="$store?.page?.lang === 'id' ? 'Semua Golongan' : 'All Groups'"
+            ></option>
+            <option value="Siaga">
+              {{ 'Siaga' if current_lang == 'id' else 'Cub Scout' }}
+            </option>
+            <option value="Penggalang">
+              {{ 'Penggalang' if current_lang == 'id' else 'Boy Scout' }}
+            </option>
+            <option value="Penegak">
+              {{ 'Penegak' if current_lang == 'id' else 'Rover Scout' }}
+            </option>
+            <option value="Pandega">
+              {{ 'Pandega' if current_lang == 'id' else 'Ranger Scout' }}
+            </option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div
+            class="text-sm text-gray-500 mr-2"
+            x-text="selectedAssessorId ? ('Selected: ' + getAssessorName(selectedAssessorId)) : ($store?.page?.lang === 'id' ? 'Pilih Penilai' : 'Select Assessor')"
+          ></div>
+          <button
+            @click="assignSelected()"
+            :disabled="!selectedAssessorId || checkedCount === 0"
+            :class="(!selectedAssessorId || checkedCount === 0) ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+            class="px-4 py-2 text-white rounded-lg"
+          >
+            <i class="fa-solid fa-user-check mr-2"></i>
+            <span
+              x-text="$store?.page?.lang === 'id' ? 'Assign Selected' : 'Assign Selected'"
+            ></span>
+            <span
+              class="ml-2 text-sm text-gray-200"
+              x-text="checkedCount ? '('+checkedCount+')' : ''"
+            ></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Participants table -->
+      <div class="overflow-x-auto border rounded-lg">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-3 py-2">
+                <input type="checkbox" @click="toggleAll($event)" />
+              </th>
+              <th class="px-3 py-2">ID</th>
+              <th class="px-3 py-2">
+                {{ 'Nama' if current_lang == 'id' else 'Name' }}
+              </th>
+              <th class="px-3 py-2">
+                {{ 'Golongan' if current_lang == 'id' else 'Group' }}
+              </th>
+              <th class="px-3 py-2">
+                {{ 'Tingkatan' if current_lang == 'id' else 'Rank' }}
+              </th>
+              <th class="px-3 py-2">
+                {{ 'Usia' if current_lang == 'id' else 'Age' }}
+              </th>
+              <th class="px-3 py-2">
+                {{ 'Gugus Depan' if current_lang == 'id' else 'Troop' }}
+              </th>
+              <th class="px-3 py-2">Status</th>
+              <th class="px-3 py-2">
+                {{ 'Penilai' if current_lang == 'id' else 'Assignee' }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="p in filteredParticipants()" :key="p.id">
+              <tr class="border-t even:bg-gray-50 dark:even:bg-gray-900">
+                <td class="px-3 py-2 text-center">
+                  <input type="checkbox" :value="p.id" x-model="checked" />
+                </td>
+                <td class="px-3 py-2" x-text="p.id"></td>
+                <td class="px-3 py-2" x-text="p.nama_lengkap"></td>
+                <td class="px-3 py-2" x-text="p.golongan"></td>
+                <td class="px-3 py-2" x-text="p.tingkatan"></td>
+                <td class="px-3 py-2" x-text="p.usia"></td>
+                <td class="px-3 py-2" x-text="p.asal_gudep"></td>
+                <td class="px-3 py-2">
+                  <span
+                    :class="p.status === 'Aktif' ? 'px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs' : 'px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs'"
+                    x-text="p.status"
+                  ></span>
+                </td>
+                <td class="px-3 py-2">
+                  <span x-text="getAssigneeName(p.id) || '-'"></span>
+                </td>
+              </tr>
+            </template>
+
+            <tr x-show="filteredParticipants().length === 0">
+              <td colspan="9" class="px-3 py-6 text-center text-gray-500">
+                {{ 'Tidak ada peserta yang ditemukan.' if current_lang == 'id'
+                else 'No participants found.' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer actions -->
+      <div class="flex items-center justify-between mt-4">
+        <div class="text-sm text-gray-500">
+          <span
+            x-text="'Showing: ' + filteredParticipants().length + ' / ' + participants.length"
+          ></span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            @click="bulkUnassign()"
+            class="px-3 py-1 bg-red-500 text-white rounded-lg cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark"></i>
+            {{ 'Batalkan Penugasan yang Dipilih' if current_lang == 'id' else
+            'Unassign Selected' }}
+          </button>
+          <button
+            @click="openExportModal()"
+            class="px-3 py-1 bg-gray-200 rounded-lg cursor-pointer"
+          >
+            {{ 'Ekspor Pilihan' if current_lang == 'id' else 'Export Selection'
+            }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Assessor -->
+  <div
+    x-show="openAddAssessor"
+    x-transition
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+  >
+    <div
+      @click.away="openAddAssessor = false"
+      class="bg-white dark:bg-gray-900 p-6 rounded-xl w-full max-w-lg"
+    >
+      <h3 class="font-semibold mb-3">
+        {{ 'Tambah Penilai' if current_lang == 'id' else 'Add Assessor' }}
+      </h3>
+      <div class="space-y-3">
+        <input
+          type="text"
+          placeholder="Full name"
+          x-model="newAssessor.name"
+          class="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+        />
+        <input
+          type="text"
+          placeholder="Role / Field (e.g. Interview)"
+          x-model="newAssessor.role"
+          class="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:text-white"
+        />
+        <div class="flex justify-end gap-2">
+          <button
+            @click="openAddAssessor = false"
+            class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-700 cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark"></i>
+            {{ 'Batal' if current_lang == 'id' else 'Cancel' }}
+          </button>
+          <button
+            @click="addAssessor()"
+            class="px-4 py-2 rounded-lg bg-green-600 text-white cursor-pointer"
+          >
+            <i class="fa-solid fa-plus"></i>
+            {{ 'Tambah' if current_lang == 'id' else 'Add' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple Export Modal -->
+  <div
+    x-show="openExport"
+    x-transition
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/40"
+  >
+    <div
+      @click.away="openExport = false"
+      class="bg-white dark:bg-gray-900 p-6 rounded-xl w-full max-w-md"
+    >
+      <h3 class="font-semibold mb-3">
+        {{ 'Ekspor' if current_lang == 'id' else 'Export' }}
+      </h3>
+      <p class="text-sm text-gray-500 mb-4">
+        {{ 'Ini adalah ekspor demo. Hubungkan ke endpoint backend untuk
+        menghasilkan CSV/XLSX.' if current_lang == 'id' else 'This is a demo
+        export. Hook this to backend endpoint to generate CSV/XLSX.' }}
+      </p>
+      <div class="flex justify-end gap-2">
+        <button
+          @click="openExport = false"
+          class="px-4 py-2 bg-gray-200 rounded-lg cursor-pointer"
+        >
+          <i class="fa-solid fa-xmark"></i>
+          {{ 'Tutup' if current_lang == 'id' else 'Close' }}
+        </button>
+        <button
+          @click="doExport()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer"
+        >
+          <i class="fa-solid fa-file-export"></i>
+          {{ 'Ekspor' if current_lang == 'id' else 'Export' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alpine.js component logic (place after Alpine is loaded) -->
+<script>
+  document.addEventListener("alpine:init", () => {
+    Alpine.data("penugasanAssessor", () => ({
+      // UI state
+      search: "",
+      filterGroup: "",
+      checked: [],
+      selectedAssessorId: null,
+      openAddAssessor: false,
+      openExport: false,
+      newAssessor: { name: "", role: "" },
+
+      // Sample assessors (replace with server data)
+      assessors: [
+        { id: 1, name: "Budi Santoso", role: "Administration" },
+        { id: 2, name: "Siti Aminah", role: "Interview" },
+        { id: 3, name: "Anton Wirawan", role: "Physical Test" },
+      ],
+
+      // Sample participants (replace with server data)
+      participants: [
+        {
+          id: 101,
+          nama_lengkap: "Adi Prasetyo",
+          golongan: "Penegak",
+          tingkatan: "Bantara",
+          usia: 21,
+          asal_gudep: "Gudep 01.001",
+          status: "Aktif",
+        },
+        {
+          id: 102,
+          nama_lengkap: "Nurul Widhanita",
+          golongan: "Pandega",
+          tingkatan: "Pandega",
+          usia: 22,
+          asal_gudep: "Gudep 01.002",
+          status: "Aktif",
+        },
+        {
+          id: 103,
+          nama_lengkap: "Ria Mariana",
+          golongan: "Penggalang",
+          tingkatan: "Rakit",
+          usia: 15,
+          asal_gudep: "Gudep 02.010",
+          status: "Aktif",
+        },
+        {
+          id: 104,
+          nama_lengkap: "Joko Susilo",
+          golongan: "Siaga",
+          tingkatan: "Tunas",
+          usia: 9,
+          asal_gudep: "Gudep 03.007",
+          status: "Aktif",
+        },
+      ],
+
+      // Map participantId -> assessorId (assignment)
+      assignments: {},
+
+      get totalParticipants() {
+        return this.participants.length;
+      },
+
+      get checkedCount() {
+        return this.checked.length;
+      },
+
+      // filter + search
+      filteredParticipants() {
+        const q = this.search.trim().toLowerCase();
+        return this.participants.filter((p) => {
+          if (this.filterGroup && p.golongan !== this.filterGroup) return false;
+          if (!q) return true;
+          return (
+            String(p.id).includes(q) || p.nama_lengkap.toLowerCase().includes(q)
+          );
+        });
+      },
+
+      // assignment helpers
+      getAssignedCount(assessorId) {
+        return Object.values(this.assignments).filter((v) => v === assessorId)
+          .length;
+      },
+
+      getAssigneeName(participantId) {
+        const aid = this.assignments[participantId];
+        if (!aid) return null;
+        const a = this.assessors.find((x) => x.id === aid);
+        return a ? a.name : null;
+      },
+
+      getAssessorName(aid) {
+        const a = this.assessors.find((x) => x.id === aid);
+        return a ? a.name : "-";
+      },
+
+      getStatus(aid) {
+        const n = this.getAssignedCount(aid);
+        if (n === 0) return "Idle";
+        if (n < 5) return "Active";
+        return "Busy";
+      },
+
+      selectAssessor(id) {
+        this.selectedAssessorId = id;
+      },
+
+      toggleAll(e) {
+        if (e.target.checked) {
+          this.checked = this.filteredParticipants().map((p) => p.id);
+        } else {
+          this.checked = [];
+        }
+      },
+
+      assignSelected() {
+        if (!this.selectedAssessorId || this.checked.length === 0) return;
+        this.checked.forEach((pid) => {
+          this.assignments[pid] = this.selectedAssessorId;
+        });
+        // clear selection
+        this.checked = [];
+        // optional: show toast / notification (integrate with your notification system)
+        console.log("Assigned to", this.selectedAssessorId);
+      },
+
+      bulkUnassign() {
+        this.checked.forEach((pid) => {
+          delete this.assignments[pid];
+        });
+        this.checked = [];
+      },
+
+      assignAllToFirst() {
+        if (this.assessors.length === 0) return;
+        const first = this.assessors[0].id;
+        this.participants.forEach((p) => (this.assignments[p.id] = first));
+      },
+
+      clearAllAssignments() {
+        this.assignments = {};
+      },
+
+      addAssessor() {
+        if (!this.newAssessor.name.trim()) return;
+        const id = (Math.max(0, ...this.assessors.map((a) => a.id)) || 0) + 1;
+        this.assessors.push({
+          id,
+          name: this.newAssessor.name.trim(),
+          role: this.newAssessor.role || "General",
+        });
+        this.newAssessor = { name: "", role: "" };
+        this.openAddAssessor = false;
+      },
+
+      getAssessorName(aid) {
+        const a = this.assessors.find((x) => x.id === aid);
+        return a ? a.name : null;
+      },
+
+      exportAssignments() {
+        // open export modal
+        this.openExport = true;
+      },
+
+      openExportModal() {
+        this.openExport = true;
+      },
+
+      doExport() {
+        // Example: build CSV string and download (simple client-side demo)
+        const rows = [
+          [
+            "participant_id",
+            "participant_name",
+            "assessor_id",
+            "assessor_name",
+          ],
+        ];
+        this.participants.forEach((p) => {
+          const aid = this.assignments[p.id] || "";
+          const aname = aid
+            ? this.assessors.find((a) => a.id === aid)?.name || ""
+            : "";
+          rows.push([p.id, p.nama_lengkap, aid, aname]);
+        });
+        const csv = rows
+          .map((r) =>
+            r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")
+          )
+          .join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "assignments.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+        this.openExport = false;
+      },
+    }));
+  });
+</script>
+<!-- END: Penugasan Penilai UI -->
