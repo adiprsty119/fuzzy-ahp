@@ -1,5 +1,7 @@
 <div
+  x-show="$store.page.current === 'peserta'"
   x-show="page === 'peserta'"
+  x-data="pesertaForm()"
   x-transition:enter="transition ease-out duration-500"
   x-transition:enter-start="opacity-0 translate-y-5"
   x-transition:enter-end="opacity-100 translate-y-0"
@@ -14,137 +16,294 @@
     Participants Data' }}
   </h1>
 
-  <!-- Toolbar -->
-  <div class="flex justify-between items-center">
-    <div class="flex space-x-2">
-      <input
-        type="text"
-        placeholder="Cari peserta..."
-        class="px-3 py-2 border rounded-lg w-64"
-        x-model="search"
-      />
-      <select class="px-3 py-2 border rounded-lg" x-model="filter">
-        <option value="">
-          {{ 'Semua Golongan' if current_lang == 'id' else 'All Groups' }}
-        </option>
-        <option value="siaga">
-          {{ 'Siaga' if current_lang == 'id' else 'Cub Scout' }}
-        </option>
-        <option value="penggalang">
-          {{ 'Penggalang' if current_lang == 'id' else 'Boy Scout' }}
-        </option>
-        <option value="penegak">
-          {{ 'Penegak' if current_lang == 'id' else 'Rover Scout' }}
-        </option>
-        <option value="pandega">
-          {{ 'Pandega' if current_lang == 'id' else 'Ranger Scout' }}
-        </option>
-      </select>
-    </div>
-    <button class="px-4 py-2 bg-green-600 text-white rounded-lg cursor-pointer">
-      {{ '+ Tambah Peserta' if current_lang == 'id' else '+ Add Participant' }}
-    </button>
+  <!-- Pilih Kegiatan -->
+  <div>
+    <label class="block font-semibold mb-2">
+      {{ 'Pilih Kegiatan' if current_lang == 'id' else 'Select Activity' }}
+    </label>
+    <select
+      x-model="selectedActivity"
+      @change="loadKuota()"
+      class="px-3 py-2 border rounded-lg w-full"
+    >
+      <template x-for="act in activities" :key="act.id">
+        <option :value="act.id" x-text="act.nama_kegiatan"></option>
+      </template>
+    </select>
   </div>
 
-  <!-- Tabel Peserta -->
-  <div class="overflow-x-auto">
-    <table class="w-full border rounded-lg text-sm">
-      <thead class="bg-gray-100 dark:bg-gray-800">
-        <tr>
-          <th class="px-3 py-2">ID</th>
-          <th class="px-3 py-2">
-            {{ 'Nama' if current_lang == 'id' else 'Name' }}
-          </th>
-          <th class="px-3 py-2">
-            {{ 'Golongan' if current_lang == 'id' else 'Group' }}
-          </th>
-          <th class="px-3 py-2">
-            {{ 'Tingkatan' if current_lang == 'id' else 'Rank' }}
-          </th>
-          <th class="px-3 py-2">
-            {{ 'Gugus Depan' if current_lang == 'id' else 'Scout Troop' }}
-          </th>
-          <th class="px-3 py-2">
-            {{ 'Jenis Kelamin' if current_lang == 'id' else 'Gender' }}
-          </th>
-          <th class="px-3 py-2">
-            {{ 'Usia' if current_lang == 'id' else 'Age' }}
-          </th>
-          <th class="px-3 py-2">
-            {{ 'No HP' if current_lang == 'id' else 'Phone Number' }}
-          </th>
-          <th class="px-3 py-2">Level</th>
-          <th class="px-3 py-2">
-            {{ 'Aksi' if current_lang == 'id' else 'Action' }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <template x-for="p in participants" :key="p.id">
-          <tr class="border-t">
-            <td class="px-3 py-2" x-text="p.id"></td>
-            <td class="px-3 py-2" x-text="p.nama_lengkap"></td>
-            <td class="px-3 py-2" x-text="p.golongan"></td>
-            <td class="px-3 py-2" x-text="p.tingkatan"></td>
-            <td class="px-3 py-2" x-text="p.asal_gudep"></td>
-            <td class="px-3 py-2" x-text="p.jenis_kelamin"></td>
-            <td class="px-3 py-2" x-text="p.usia"></td>
-            <td class="px-3 py-2" x-text="p.nomor_hp"></td>
-            <td class="px-3 py-2" x-text="p.level"></td>
-            <td class="px-3 py-2 space-x-2">
-              <button class="px-2 py-1 bg-blue-500 text-white rounded">
-                {{ 'Detail' if current_lang == 'id' else 'Details' }}
-              </button>
-              <button class="px-2 py-1 bg-yellow-500 text-white rounded">
-                Edit
-              </button>
-              <button class="px-2 py-1 bg-red-500 text-white rounded">
-                {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
-              </button>
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
+  <!-- Info Kuota -->
+  <div class="flex space-x-6">
+    <div>
+      <span class="font-semibold">Kuota Putra:</span>
+      <span x-text="kuota.putra"></span>
+    </div>
+    <div>
+      <span class="font-semibold">Kuota Putri:</span>
+      <span x-text="kuota.putri"></span>
+    </div>
   </div>
-  <button
-    @click="page = 'main'; $store.page.breadcrumbs = current_lang === 'id' ? ['Manajemen Seleksi'] : ['Selection Management']"
-    class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer"
-  >
-    <i class="fa-solid fa-backward"></i>
-    {{ 'Kembali' if current_lang == 'id' else 'Back' }}
-  </button>
+
+  <!-- Form Data Peserta -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Peserta Putra -->
+    <div class="p-4 border rounded-lg shadow-md">
+      <h2 class="text-lg font-bold mb-4">Peserta Putra</h2>
+      <template x-for="(peserta, index) in pesertaPutra" :key="index">
+        <div class="space-y-3 mb-6 border-b pb-4">
+          <input
+            type="text"
+            placeholder="Nama Lengkap"
+            x-model="peserta.nama_lengkap"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="date"
+            x-model="peserta.tanggal_lahir"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <select
+            x-model="peserta.jenis_kelamin"
+            class="w-full px-3 py-2 border rounded"
+          >
+            <option value="Laki-laki">Laki-laki</option>
+          </select>
+          <input
+            type="number"
+            placeholder="Usia"
+            x-model="peserta.usia"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <textarea
+            placeholder="Alamat Tinggal"
+            x-model="peserta.alamat_tinggal"
+            class="w-full px-3 py-2 border rounded"
+          ></textarea>
+          <input
+            type="text"
+            placeholder="Golongan"
+            x-model="peserta.golongan"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Tingkatan"
+            x-model="peserta.tingkatan"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Gugus Depan"
+            x-model="peserta.asal_gudep"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Kwarran"
+            x-model="peserta.asal_kwarran"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Kwarcab"
+            x-model="peserta.asal_kwarcab"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Kwarda"
+            x-model="peserta.asal_kwarda"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Nomor HP"
+            x-model="peserta.nomor_hp"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            x-model="peserta.email"
+            class="w-full px-3 py-2 border rounded"
+          />
+        </div>
+      </template>
+    </div>
+
+    <!-- Peserta Putri -->
+    <div class="p-4 border rounded-lg shadow-md">
+      <h2 class="text-lg font-bold mb-4">Peserta Putri</h2>
+      <template x-for="(peserta, index) in pesertaPutri" :key="index">
+        <div class="space-y-3 mb-6 border-b pb-4">
+          <input
+            type="text"
+            placeholder="Nama Lengkap"
+            x-model="peserta.nama_lengkap"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="date"
+            x-model="peserta.tanggal_lahir"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <select
+            x-model="peserta.jenis_kelamin"
+            class="w-full px-3 py-2 border rounded"
+          >
+            <option value="Perempuan">Perempuan</option>
+          </select>
+          <input
+            type="number"
+            placeholder="Usia"
+            x-model="peserta.usia"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <textarea
+            placeholder="Alamat Tinggal"
+            x-model="peserta.alamat_tinggal"
+            class="w-full px-3 py-2 border rounded"
+          ></textarea>
+          <input
+            type="text"
+            placeholder="Golongan"
+            x-model="peserta.golongan"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Tingkatan"
+            x-model="peserta.tingkatan"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Gugus Depan"
+            x-model="peserta.asal_gudep"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Kwarran"
+            x-model="peserta.asal_kwarran"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Kwarcab"
+            x-model="peserta.asal_kwarcab"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Asal Kwarda"
+            x-model="peserta.asal_kwarda"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="Nomor HP"
+            x-model="peserta.nomor_hp"
+            class="w-full px-3 py-2 border rounded"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            x-model="peserta.email"
+            class="w-full px-3 py-2 border rounded"
+          />
+        </div>
+      </template>
+    </div>
+  </div>
 </div>
 
 <script>
   document.addEventListener("alpine:init", () => {
-    Alpine.data("pesertaData", () => ({
-      search: "",
-      filter: "",
-      participants: [
-        {
-          id: 1,
-          nama_lengkap: "Adi Prasetyo",
-          golongan: "Penegak",
-          tingkatan: "Bantara",
-          asal_gudep: "Gudep 01.001",
-          jenis_kelamin: "Laki-laki",
-          usia: 21,
-          nomor_hp: "08123456789",
-          level: "peserta",
-        },
-        {
-          id: 2,
-          nama_lengkap: "Nurul Widhanita",
-          golongan: "Pandega",
-          tingkatan: "Pandega",
-          asal_gudep: "Gudep 01.002",
-          jenis_kelamin: "Perempuan",
-          usia: 22,
-          nomor_hp: "08234567890",
-          level: "peserta",
-        },
-      ],
+    Alpine.data("pesertaForm", () => ({
+      selectedActivity: "",
+      activities: [],
+      kuota: { putra: 0, putri: 0 },
+      pesertaPutra: [],
+      pesertaPutri: [],
+
+      async loadActivities() {
+        let res = await fetch("/api/kegiatan");
+        this.activities = await res.json();
+      },
+
+      async loadKuota() {
+        if (!this.selectedActivity) return;
+
+        // Ambil kuota
+        let res = await fetch(`/api/kuota/${this.selectedActivity}`);
+        this.kuota = await res.json();
+
+        // Ambil data peserta existing dari backend
+        let pesertaRes = await fetch(`/api/peserta/${this.selectedActivity}`);
+        let pesertaData = await pesertaRes.json();
+
+        // Pisahkan putra & putri
+        let putraData = pesertaData.filter(
+          (p) => p.jenis_kelamin === "Laki-laki"
+        );
+        let putriData = pesertaData.filter(
+          (p) => p.jenis_kelamin === "Perempuan"
+        );
+
+        // Isi form sesuai kuota
+        this.pesertaPutra = Array.from({ length: this.kuota.putra }, (_, i) => {
+          return putraData[i] || this.templatePeserta("Laki-laki");
+        });
+
+        this.pesertaPutri = Array.from({ length: this.kuota.putri }, (_, i) => {
+          return putriData[i] || this.templatePeserta("Perempuan");
+        });
+      },
+
+      templatePeserta(jk) {
+        return {
+          nama_lengkap: "",
+          tanggal_lahir: "",
+          jenis_kelamin: jk,
+          usia: "",
+          alamat_tinggal: "",
+          golongan: "",
+          tingkatan: "",
+          asal_gudep: "",
+          asal_kwarran: "",
+          asal_kwarcab: "",
+          asal_kwarda: "",
+          nomor_hp: "",
+          email: "",
+        };
+      },
+
+      async simpanPeserta() {
+        const payload = {
+          kegiatan_id: this.selectedActivity,
+          putra: this.pesertaPutra,
+          putri: this.pesertaPutri,
+        };
+        console.log("Data peserta dikirim:", payload);
+
+        let res = await fetch("/api/save_peserta", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        let result = await res.json();
+        if (result.status === "success") {
+          alert("Data peserta berhasil disimpan!");
+        } else {
+          alert("Gagal: " + result.message);
+        }
+      },
+
+      init() {
+        this.loadActivities();
+      },
     }));
   });
 </script>

@@ -27,11 +27,34 @@ class Event(db.Model):
     id_kegiatan = db.Column(db.Integer, primary_key=True, autoincrement=True)
     jenis_kegiatan = db.Column(db.Enum('siaga','penggalang','penegak','pandega','penegak dan pandega'), nullable=False)
     nama_kegiatan = db.Column(db.String(255), nullable=False)
-    waktu_pelaksanaan = db.Column(db.String(255), nullable=False)
+    waktu_pelaksanaan = db.Column(db.Date, nullable=False)
     tempat_pelaksanaan = db.Column(db.String(100), nullable=False)
     skala_kegiatan = db.Column(db.Enum('ranting','cabang','daerah','nasional','internasional'), nullable=False)
-    kwartir_penyelenggara = db.Column(db.Enum('kwartir ranting','kwartir cabang','kwartir daerah','kwartir nasional'), nullable=False) 
+    kwartir_penyelenggara = db.Column(db.String(255), nullable=False)
+    mulai = db.Column(db.Date, nullable=False)
+    selesai = db.Column(db.Date, nullable=False)
+    kuota = db.relationship("Kuota", backref="event", lazy=True, cascade="all, delete-orphan")
+    kriteria = db.relationship("Criteria", backref="event", lazy=True, cascade="all, delete-orphan")
 
+class Kuota(db.Model):
+    __tablename__ = 'tb_kuota'
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey("tb_kegiatan.id_kegiatan"), nullable=False, unique=True)
+    putra = db.Column(db.Integer, default=0)
+    putri = db.Column(db.Integer, default=0)   
+
+# Access to table tb_kriteria
+class Criteria(db.Model):
+    __tablename__ = 'tb_kriteria'
+    id_kriteria = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey("tb_kegiatan.id_kegiatan"), nullable=False)
+    nama_kriteria = db.Column(db.String(255), nullable=False)
+    aspek = db.Column(db.String(255), nullable=True)  
+    bobot = db.Column(db.Float, nullable=False)
+    deskripsi = db.Column(db.Text, nullable=False)
+    jenis_kriteria = db.Column(db.String(255), nullable=False)
+    jumlah_soal = db.Column(db.Integer, nullable=True)
+    
 # Access to table notifications
 class Notification(db.Model):
     __tablename__ = "notifications"
@@ -67,15 +90,6 @@ class Participants(db.Model):
     def __repr__(self):
         return f"<Participant {self.nama_lengkap}>"
 
-# Access to table tb_kriteria
-class Criteria(db.Model):
-    __tablename__ = 'tb_kriteria'
-    id_kriteria = db.Column(db.Integer, primary_key=True)
-    kriteria = db.Column(db.String(255), nullable=False)
-    bobot = db.Column(db.Float, nullable=False)
-    deskripsi = db.Column(db.Text, nullable=False)
-    jenis_kriteria = db.Column(db.String(255), nullable=False)
-
 # Access to table himpunan_kriteria
 class HimpunanKriteria(db.Model):
     __tablename__ = 'himpunan_kriteria'
@@ -83,7 +97,6 @@ class HimpunanKriteria(db.Model):
     id_kriteria = db.Column(db.Integer, db.ForeignKey('tb_kriteria.id_kriteria'), nullable=False)
     nama_himpunan = db.Column(db.String(255), nullable=False)
     nilai_himpunan = db.Column(db.Float, nullable=False)
-
 
 # Access to table tb_penilaian
 class Penilaian(db.Model):
@@ -102,7 +115,6 @@ class HasilSeleksi(db.Model):
     skor_akhir = db.Column(db.Float, nullable=False)
     ranking = db.Column(db.Integer, nullable=False)
 
-
 # Access to table tb_log_aktivitas
 class LogAktivitas(db.Model):
     __tablename__ = 'tb_log_aktivitas'
@@ -114,7 +126,6 @@ class LogAktivitas(db.Model):
     timestamp = db.Column(db.DateTime, server_default=db.func.current_timestamp())
     
     user = db.relationship('Users', backref='logs')
-
 
 # Access to table tb_informasi
 class Informasi(db.Model):

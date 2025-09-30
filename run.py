@@ -1,16 +1,16 @@
-from flask import Flask, request, render_template, request as flask_request, redirect, url_for, flash, session, jsonify
+from flask import Flask, request, render_template, request as flask_request, redirect, url_for, flash, session, jsonify, current_app
 from flask_session import Session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import create_app, db
-from app.models import Users, Participants, Criteria, Notification, Event
+from app.models import Users, Participants, Notification, Event, Kuota, Criteria
 from flask_mail import Mail, Message
 from twilio.rest import Client
 from authlib.integrations.flask_client import OAuth
 from markupsafe import escape
 from datetime import datetime, timedelta
-from flask_wtf import CSRFProtect
-from flask_wtf.csrf import CSRFError 
+# from flask_wtf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from forms import LoginForm, RegisterForm
 from config import Config
 from flask_limiter import Limiter
@@ -781,7 +781,7 @@ def admin_add_user():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        role = request.form.get('role')  # misalnya: 'admin' atau 'user'
+        role = request.form.get('role')  
 
         # Hash password
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
@@ -881,21 +881,178 @@ def admin_import_users():
         flash('Format file tidak diizinkan! Gunakan CSV atau Excel.', 'error')
         return redirect(url_for('admin_users'))
 
-
-
-# Manajemen Kegiatan    
-@app.route('/admin/manajemen_kegiatan')
+# Manajemen Seleksi   
+@app.route('/admin/manajemen_seleksi')
 @login_required
 @admin_required
-def admin_manajemen_kegiatan():
+def admin_manajemen_seleksi():
     sidebar_state = current_user.sidebar_state or 'expanded'
     kegiatan_list = Event.query.all()
     return render_template("manajemen_seleksi.html", kegiatan_list=kegiatan_list, sidebar_state=sidebar_state, user=current_user, time=time)
 
-# Tambah Kegiatan
-@app.route('/admin/tambah_kegiatan', methods=['GET', 'POST'])
+# Konfigurasi Seleksi
+@app.route('/api/save_config', methods=['POST'])
 @login_required
-def tambah_kegiatan():
+@csrf.exempt
+def save_config():
+    try:
+        data = request.get_json(force=True)
+        activities = data.get('activities', [])
+        criteria_list = data.get('criteria', [])
+
+        if not activities and not criteria_list:
+            return jsonify({'status': 'error', 'message': 'No data provided'}), 400
+
+        created_events = []
+
+        # Buat Event & Kuota
+        for act in activities:
+            nama = (act.get('nama') or '').strip()
+            if not nama:
+                continue
+
+            mulai_date = None
+            selesai_date = None
+            try:
+                if act.get('mulai'):
+                    mulai_date = datetime.strptime(act['mulai'], '%Y-%m-%d').date()
+                if act.get('selesai'):
+                    selesai_date = datetime.strptime(act['selesai'], '%Y-%m-%d').date()
+            except Exception:
+                pass
+
+            event = Event(
+                jenis_kegiatan=act.get('jenis', 'siaga'),
+                nama_kegiatan=nama,
+                waktu_pelaksanaan=act.get('waktu', ''),
+                tempat_pelaksanaan=act.get('tempat', act.get('tempat', '-')),
+                skala_kegiatan=act.get('skala', 'ranting'),
+                kwartir_penyelenggara=act.get('kwartir', 'kwartir ranting'),
+                mulai=mulai_date or datetime.utcnow().date(),
+                selesai=selesai_date or (mulai_date or datetime.utcnow().date())
+            )
+            db.session.add(event)
+            db.session.flush()
+
+            kuota = Kuota(
+                event_id=event.id_kegiatan,
+                putra=int(act.get('putra') or 0),
+                putri=int(act.get('putri') or 0)
+            )
+            db.session.add(kuota)
+
+            created_events.append(event)
+
+        target_event_id = created_events[0].id_kegiatan if created_events else None
+
+        # Buat Criteria
+        for c in criteria_list:
+            nama_kriteria = (c.get('nama') or '').strip() or 'Unnamed Criteria'
+            bobot = float(c.get('bobot') or 0)
+            aspek = c.get('aspek', [])
+            aspek_str = ', '.join(aspek) if isinstance(aspek, list) else (aspek or '')
+
+            jumlah_soal = c.get('jumlah_soal') or c.get('jumlahSoal') or None
+            deskripsi = c.get('deskripsi', '')
+            jenis_kriteria = c.get('jenis_kriteria', 'umum')
+
+            if target_event_id is None:
+                placeholder = Event(
+                    jenis_kegiatan='-',
+                    nama_kegiatan='(Default) Konfigurasi Seleksi',
+                    waktu_pelaksanaan='',
+                    tempat_pelaksanaan='-',
+                    skala_kegiatan='-',
+                    kwartir_penyelenggara='-',
+                    mulai=datetime.utcnow().date(),
+                    selesai=datetime.utcnow().date()
+                )
+                db.session.add(placeholder)
+                db.session.flush()
+                target_event_id = placeholder.id_kegiatan
+
+            crit = Criteria(
+                event_id=target_event_id,
+                nama_kriteria=nama_kriteria,
+                aspek=aspek_str,
+                bobot=bobot,
+                deskripsi=deskripsi,
+                jenis_kriteria=jenis_kriteria,
+                jumlah_soal=int(jumlah_soal) if jumlah_soal else None
+            )
+            db.session.add(crit)
+
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Konfigurasi berhasil disimpan'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception('Error in /api/save_config:')
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# API Kegiatan 
+@app.route('/api/kegiatan')
+@login_required
+def api_kegiatan():
+    kegiatan = Event.query.all()
+    result = [
+        {
+            "id": k.id_kegiatan,
+            "nama_kegiatan": k.nama_kegiatan,
+            "jenis_kegiatan": k.jenis_kegiatan,
+            "waktu_pelaksanaan": k.waktu_pelaksanaan.strftime("%Y-%m-%d"),
+            "tempat_pelaksanaan": k.tempat_pelaksanaan,
+            "skala_kegiatan": k.skala_kegiatan,
+            "kwartir_penyelenggara": k.kwartir_penyelenggara,
+            "mulai": k.mulai.strftime("%Y-%m-%d"),
+            "selesai": k.selesai.strftime("%Y-%m-%d"),
+        }
+        for k in kegiatan
+    ]
+    return jsonify(result)
+
+# API Kuota Kegiatan
+@app.route('/api/kuota/<int:event_id>')
+@login_required
+def api_kuota(event_id):
+    event = Event.query.get_or_404(event_id)
+    if not event.kuota:
+        return jsonify({"putra": 0, "putri": 0})
+
+    # asumsi tabel Kuota punya kolom putra & putri
+    kuota = event.kuota[0]
+    return jsonify({
+        "putra": kuota.putra,
+        "putri": kuota.putri
+    })
+
+# API Data Peserta
+@app.route("/api/peserta/<int:kegiatan_id>")
+def get_peserta(kegiatan_id):
+    peserta = Participants.query.filter_by(kegiatan_id=kegiatan_id).all()
+    data = []
+    for p in peserta:
+        data.append({
+            "nama_lengkap": p.nama_lengkap,
+            "tanggal_lahir": str(p.tanggal_lahir),
+            "jenis_kelamin": p.jenis_kelamin,
+            "usia": p.usia,
+            "alamat_tinggal": p.alamat_tinggal,
+            "golongan": p.golongan,
+            "tingkatan": p.tingkatan,
+            "asal_gudep": p.asal_gudep,
+            "asal_kwarran": p.asal_kwarran,
+            "asal_kwarcab": p.asal_kwarcab,
+            "asal_kwarda": p.asal_kwarda,
+            "nomor_hp": p.nomor_hp,
+            "email": p.email
+        })
+    return jsonify(data)
+
+# Tambah Kegiatan
+@app.route('/admin/tambah_seleksi', methods=['GET', 'POST'])
+@login_required
+def tambah_seleksi():
     if request.method == 'POST':
         nama = request.form['nama_kegiatan']
         jenis = request.form['jenis_kegiatan']
@@ -916,7 +1073,7 @@ def tambah_kegiatan():
         db.session.commit()
 
         flash('Kegiatan berhasil ditambahkan!', 'success')
-        return redirect(url_for('admin_manajemen_kegiatan'))
+        return redirect(url_for('admin_manajemen_seleksi'))
     return render_template("tambah_kegiatan.html")
 
 # Edit Kegiatan
@@ -931,7 +1088,7 @@ def edit_kegiatan(id):
         event.tempat_pelaksanaan = request.form['tempat_pelaksanaan']
         db.session.commit()
         flash('Kegiatan berhasil diupdate!', 'success')
-        return redirect(url_for('admin_manajemen_kegiatan'))
+        return redirect(url_for('admin_manajemen_seleksi'))
     return render_template("edit_kegiatan.html", event=event)
 
 # Hapus Kegiatan
@@ -942,7 +1099,7 @@ def hapus_kegiatan(id):
     db.session.delete(event)
     db.session.commit()
     flash('Kegiatan berhasil dihapus!', 'danger')
-    return redirect(url_for('admin_manajemen_kegiatan'))
+    return redirect(url_for('admin_manajemen_seleksi'))
 
 @app.route('/admin/detail_kegiatan/<int:id>')
 @login_required

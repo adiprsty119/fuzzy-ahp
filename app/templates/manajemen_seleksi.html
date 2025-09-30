@@ -38,7 +38,7 @@
     {% include 'script_theme.html' %}
   </head>
   <body
-    x-data="{ ready: false, page: 'main', current_lang: '{{ current_lang }}' }"
+    x-data="{ ready: false, page: 'main', current_lang: '{{ current_lang }}', modal: { show: false, title: '', message: '' }}"
     x-init="ready = true"
     :class="{ 'dark': $store.theme?.isDark }"
     x-bind:class="{
@@ -317,6 +317,42 @@
       </div>
     </div>
 
+    <!-- Modal Notifikasi -->
+    <div
+      x-show="modal.show"
+      class="fixed inset-0 bg-gray-900 bg-opacity-100 flex items-center justify-center z-[9999]"
+      x-transition
+    >
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 w-96 text-center"
+      >
+        <h2
+          class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+          x-text="modal.title"
+        ></h2>
+        <p
+          class="text-gray-700 dark:text-gray-300 mb-6"
+          x-text="modal.message"
+        ></p>
+        <button
+          @click="modal.show = false"
+          class="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800"
+        >
+          <i class="fa-solid fa-xmark"></i>
+          {{ 'Tutup' if current_lang == 'id' else 'Close' }}
+        </button>
+        <button
+          x-show="modal.title === 'Berhasil'"
+          @click="$store.page.current = 'peserta'; $store.page.breadcrumbs = current_lang === 'id' ? ['Manajemen Seleksi', 'Data Peserta Seleksi'] : ['Selection Management', 'Selection Participants Data']"
+          class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 active:scale-95 transition-all shadow dark:bg-blue-600 dark:hover:bg-blue-700 cursor-pointer mt-2.5"
+        >
+          <i class="fa-solid fa-gear mr-2"></i>
+          {{ 'Kelola Data Peserta' if current_lang == 'id' else 'Manage
+          Participant Data' }}
+        </button>
+      </div>
+    </div>
+
     <script>
       document.addEventListener("alpine:init", () => {
         const lang = "{{ current_lang }}";
@@ -326,6 +362,20 @@
         });
       });
     </script>
+
+    <!-- Inisialisasi store -->
+    <script>
+      document.addEventListener("alpine:init", () => {
+        const lang = "{{ current_lang }}";
+        Alpine.store("page", {
+          current: "main",
+          breadcrumbs:
+            lang === "id" ? ["Manajemen Seleksi"] : ["Selection Management"],
+        });
+      });
+    </script>
+
+    <script src="{{ url_for('static', filename='js/konfigurasi_seleksi.js') }}"></script>
 
     <!-- Animation & Notification Script -->
     {% include 'script_animation.html' %} {% include 'script_notification.html'

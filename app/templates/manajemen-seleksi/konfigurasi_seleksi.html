@@ -1,6 +1,26 @@
 <!-- === Halaman Konfigurasi Seleksi (Tabs) === -->
 <div
+  id="configComponent"
   x-show="page === 'config'"
+  x-data="{
+    tab: 'periode',
+    completed: { periode: false, kuota: false, kriteria: false },
+    activities: [{ nama:'', mulai:'', selesai:'' }],
+    criteria: [
+      { nama: 'Status Keaktifan di Gugus Depan', bobot: 30, aspek: [] },
+      { nama: 'Pencapaian SKU', bobot: 40, aspek: [] },
+      { nama: 'Pencapaian SPG', bobot: 50, aspek: [] },
+      { nama: 'Kesehatan Jasmani dan Rohani', bobot: 40, aspek: [] },
+      { nama: 'Tes Wawancara', bobot: 40, aspek: [] },
+      { nama: 'Tes Pilihan Ganda', bobot: 40, aspek: [] },
+    ],
+    showModal: false,
+       selectedIndex: null,
+       toggleAspect(event, index) {
+         if (event.target.checked) this.criteria[index].aspek.push(event.target.value);
+         else this.criteria[index].aspek = this.criteria[index].aspek.filter(a => a !== event.target.value);
+       }
+  }"
   x-transition:enter="transition ease-out duration-500"
   x-transition:enter-start="opacity-0 translate-y-5"
   x-transition:enter-end="opacity-100 translate-y-0"
@@ -9,157 +29,474 @@
   x-transition:leave-end="opacity-0 translate-y-5"
   class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg"
 >
-  <!-- Tab Navigation -->
-  <div x-data="{ tab: 'periode' }">
-    <div class="flex border-b mb-6">
-      <button
-        @click="tab = 'periode'"
-        :class="tab==='periode' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'"
-        class="px-4 py-2 font-medium cursor-pointer"
-      >
-        {{ 'Periode & Jadwal' if current_lang == 'id' else 'Period & Schedule'
-        }}
-      </button>
-      <button
-        @click="tab = 'kuota'"
-        :class="tab==='kuota' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'"
-        class="px-4 py-2 font-medium cursor-pointer"
-      >
-        {{ 'Kuota Peserta' if current_lang == 'id' else 'Quota' }}
-      </button>
-      <button
-        @click="tab = 'kriteria'"
-        :class="tab==='kriteria' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'"
-        class="px-4 py-2 font-medium cursor-pointer"
-      >
-        {{ 'Kriteria Seleksi' if current_lang == 'id' else 'Criteria' }}
-      </button>
-    </div>
-
-    <!-- Tab Content -->
+  <form id="configForm" onsubmit="return false;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <!-- Tab Navigation -->
     <div>
-      <!-- Periode & Jadwal -->
-      <div x-show="tab==='periode'" x-transition>
-        <h3 class="font-semibold mb-2">
-          {{ 'Periode Seleksi' if current_lang == 'id' else 'Selection Period'
-          }}
-        </h3>
-        <div class="flex gap-3 mb-4">
-          <input
-            type="date"
-            class="w-1/2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
-          />
-          <input
-            type="date"
-            class="w-1/2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
-          />
-        </div>
-
-        <h3 class="font-semibold mb-2">
-          {{ 'Jadwal Seleksi' if current_lang == 'id' else 'Selection Schedule'
-          }}
-        </h3>
-        <div
-          x-data="{ schedules: ['{{ 'Tes Administrasi' if current_lang == 'id' else 'Administration Test' }}'] }"
-        >
-          <template x-for="(item, index) in schedules" :key="index">
-            <div class="flex gap-2 mb-2">
-              <input
-                type="text"
-                x-model="schedules[index]"
-                class="flex-1 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
-              />
-              <button
-                @click="schedules.splice(index,1)"
-                type="button"
-                class="px-2 py-1 bg-red-500 text-white rounded-lg text-xs cursor-pointer"
-              >
-                {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
-              </button>
-            </div>
-          </template>
-          <button
-            @click="schedules.push('')"
-            type="button"
-            class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm cursor-pointer mt-1.5"
-          >
-            {{ '+ Tambah Jadwal' if current_lang == 'id' else '+ Add Schedule'
-            }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Kuota Peserta -->
-      <div x-show="tab==='kuota'" x-transition>
-        <h3 class="font-semibold mb-2">
-          {{ 'Kuota Peserta' if current_lang == 'id' else 'Participant Quota' }}
-        </h3>
-        <input
-          type="number"
-          min="1"
-          class="w-full rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
-        />
-      </div>
-
-      <!-- Kriteria Seleksi -->
-      <div
-        x-show="tab==='kriteria'"
-        x-transition
-        x-data="{ criteria: [{nama:'{{ 'Status Keaktifan di Gugus Depan' if current_lang == 'id' else 'Activeness Status in Scout Unit'}}', bobot:30}, {nama:'{{ 'Pencapaian SKU' if current_lang == 'id' else 'SKU Achievement' }}', bobot:40}, {nama:'{{ 'Pencapaian SPG' if current_lang == 'id' else 'SPG Achievement' }}', bobot:50}, {nama:'{{ 'Kesehatan Jasmani dan Rohani' if current_lang == 'id' else 'Physical and Mental Health' }}', bobot:40}, {nama:'{{ 'Tes Wawancara' if current_lang == 'id' else 'Interview Test' }}', bobot:40}, {nama:'{{ 'Tes Tertulis' if current_lang == 'id' else 'Written Test' }}', bobot:40}] }"
-      >
-        <h3 class="font-semibold mb-2">
-          {{ 'Kriteria Seleksi' if current_lang == 'id' else 'Selection
-          Criteria' }}
-        </h3>
-        <template x-for="(c, index) in criteria" :key="index">
-          <div class="flex items-center gap-2 mb-2">
-            <input
-              type="text"
-              x-model="c.nama"
-              class="w-2/3 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
-            />
-            <input
-              type="number"
-              x-model="c.bobot"
-              class="w-1/3 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
-            />
-            <span>%</span>
-            <button
-              @click="criteria.splice(index,1)"
-              type="button"
-              class="px-2 py-1 bg-red-500 text-white rounded-lg text-xs cursor-pointer"
-            >
-              {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
-            </button>
-          </div>
-        </template>
+      <div class="flex border-b mb-6">
         <button
-          @click="criteria.push({nama:'', bobot:0})"
-          type="button"
-          class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm cursor-pointer mt-1.5"
+          @click="tab = 'periode'"
+          :class="tab==='periode' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'"
+          class="px-4 py-2 font-medium cursor-pointer"
         >
-          {{ '+ Tambah Kriteria' if current_lang == 'id' else '+ Add Criteria'
-          }}
+          {{ 'Jadwal & Kegiatan' if current_lang == 'id' else 'Period &
+          Schedule' }}
+          <template x-if="completed.periode">
+            <i class="fa-solid fa-square-check text-green-600"></i>
+          </template>
+        </button>
+        <button
+          @click="tab = 'kuota'"
+          :class="tab==='kuota' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'"
+          class="px-4 py-2 font-medium cursor-pointer"
+        >
+          {{ 'Kuota Peserta' if current_lang == 'id' else 'Quota' }}
+          <template x-if="completed.kuota">
+            <i class="fa-solid fa-square-check text-green-600"></i>
+          </template>
+        </button>
+        <button
+          @click="tab = 'kriteria'"
+          :class="tab==='kriteria' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'"
+          class="px-4 py-2 font-medium cursor-pointer"
+        >
+          {{ 'Kriteria Seleksi' if current_lang == 'id' else 'Criteria' }}
+          <template x-if="completed.kriteria">
+            <i class="fa-solid fa-square-check text-green-600"></i>
+          </template>
         </button>
       </div>
-    </div>
 
-    <!-- Tombol Navigasi -->
-    <div class="flex justify-between mt-6">
-      <button
-        @click="page = 'main'; $store.page.breadcrumbs = current_lang === 'id' ? ['Manajemen Seleksi'] : ['Selection Management']"
-        class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer"
-      >
-        <i class="fa-solid fa-backward"></i>
-        {{ 'Kembali' if current_lang == 'id' else 'Back' }}
-      </button>
-      <button
-        type="submit"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
-      >
-        <i class="fa-solid fa-download"></i>
-        {{ 'Simpan' if current_lang == 'id' else 'Save' }}
-      </button>
+      <!-- Tab Content -->
+      <div>
+        <!-- Periode & Jadwal -->
+        <div x-show="tab==='periode'" x-transition>
+          <h3 class="font-semibold mb-2">
+            {{ 'Periode Seleksi' if current_lang == 'id' else 'Selection Period'
+            }}
+          </h3>
+          <div>
+            <template x-for="(act, index) in activities" :key="index">
+              <div class="mb-4 p-3 border rounded-lg dark:border-gray-700">
+                <!-- Nama Kegiatan -->
+                <label class="block text-sm font-medium mb-1 mt-2">
+                  {{ 'Nama Kegiatan' if current_lang == 'id' else 'Activity
+                  Name' }}
+                </label>
+                <input
+                  type="text"
+                  x-model="act.nama"
+                  placeholder="Contoh: Raimuna Nasional"
+                  class="w-full mb-2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                />
+
+                <!-- Skala Kegiatan -->
+                <label class="block text-sm font-medium mb-1 mt-2">
+                  {{ 'Skala Kegiatan' if current_lang == 'id' else 'Activity
+                  Scale' }}
+                </label>
+                <select
+                  x-model="act.skala"
+                  class="w-full mb-2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="Ranting">
+                    {{ 'Ranting' if current_lang == 'id' else 'Branch' }}
+                  </option>
+                  <option value="Cabang">
+                    {{ 'Cabang' if current_lang == 'id' else 'District' }}
+                  </option>
+                  <option value="Daerah">
+                    {{ 'Daerah' if current_lang == 'id' else 'Region' }}
+                  </option>
+                  <option value="Nasional">
+                    {{ 'Nasional' if current_lang == 'id' else 'National' }}
+                  </option>
+                  <option value="Internasional">
+                    {{ 'Internasional' if current_lang == 'id' else
+                    'International' }}
+                  </option>
+                </select>
+
+                <!-- Jenis Kegiatan -->
+                <label class="block text-sm font-medium mb-1 mt-2">
+                  {{ 'Jenis Kegiatan' if current_lang == 'id' else 'Activity
+                  Type' }}
+                </label>
+                <select
+                  x-model="act.jenis"
+                  class="w-full mb-2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="Siaga">
+                    {{ 'Siaga' if current_lang == 'id' else 'Cub Scout' }}
+                  </option>
+                  <option value="Penggalang">
+                    {{ 'Penggalang' if current_lang == 'id' else 'Scout' }}
+                  </option>
+                  <option value="Penegak">
+                    {{ 'Penegak' if current_lang == 'id' else 'Rover Scout' }}
+                  </option>
+                  <option value="Pandega">
+                    {{ 'Pandega' if current_lang == 'id' else 'Rover' }}
+                  </option>
+                  <option value="Penegak dan Pandega">
+                    {{ 'Penegak dan Pandega' if current_lang == 'id' else 'Rover
+                    Scout and Rover' }}
+                  </option>
+                </select>
+
+                <!-- Kwartir Penyelenggara -->
+                <label class="block text-sm font-medium mb-1 mt-2">
+                  {{ 'Kwartir Penyelenggara' if current_lang == 'id' else
+                  'Organizing Kwartir' }}
+                </label>
+                <input
+                  type="text"
+                  x-model="act.kwartir"
+                  placeholder="Contoh: Kwartir Cabang Merauke"
+                  class="w-full mb-2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                />
+
+                <!-- Waktu Pelaksanaan -->
+                <label class="block text-sm font-medium mb-1 mt-2">
+                  {{ 'Waktu Pelaksanaan' if current_lang == 'id' else 'Execution
+                  Date' }}
+                </label>
+                <input
+                  type="date"
+                  x-model="act.waktu"
+                  class="w-full mb-2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                />
+
+                <!-- Tempat Pelaksanaan -->
+                <label class="block text-sm font-medium mb-1 mt-2">
+                  {{ 'Tempat Pelaksanaan' if current_lang == 'id' else
+                  'Execution Date' }}
+                </label>
+                <input
+                  type="text"
+                  x-model="act.tempat"
+                  class="w-full mb-2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                />
+
+                <!-- Periode Pelaksanaan -->
+                <label class="block text-sm font-medium mb-1 mt-2">
+                  {{ 'Periode Seleksi' if current_lang == 'id' else 'Selection
+                  Period' }}
+                </label>
+                <div class="flex gap-3">
+                  <input
+                    type="date"
+                    x-model="act.mulai"
+                    class="w-1/2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                  />
+                  <input
+                    type="date"
+                    x-model="act.selesai"
+                    class="w-1/2 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+
+                <!-- Tombol Hapus -->
+                <button
+                  @click="activities.splice(index,1)"
+                  type="button"
+                  class="mt-6 px-2 py-1 bg-red-500 text-white rounded-lg text-xs cursor-pointer"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                  {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
+                </button>
+              </div>
+            </template>
+
+            <!-- Tambah Kegiatan -->
+            <button
+              @click="activities.push({nama:'', mulai:'', selesai:''})"
+              type="button"
+              class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm cursor-pointer mt-2"
+            >
+              {{ '+ Tambah Kegiatan' if current_lang == 'id' else '+ Add
+              Activity' }}
+            </button>
+
+            <!-- Tombol Navigasi -->
+            <div class="flex justify-between mt-6">
+              <button
+                @click="page = 'main'; $store.page.breadcrumbs = current_lang === 'id' ? ['Manajemen Seleksi'] : ['Selection Management']"
+                class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer"
+              >
+                <i class="fa-solid fa-backward"></i>
+                {{ 'Kembali' if current_lang == 'id' else 'Back' }}
+              </button>
+              <button
+                type="button"
+                @click="if (!activities[0].nama || !activities[0].mulai || !activities[0].selesai) {alert('Nama kegiatan dan periode harus diisi'); return;} completed.periode = true; tab = 'kuota'"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+              >
+                <i class="fa-solid fa-download"></i>
+                {{ 'Simpan & Lanjut' if current_lang == 'id' else 'Save & Next'
+                }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kuota Peserta -->
+        <div x-show="tab==='kuota'" x-transition>
+          <h3 class="font-semibold mb-2">
+            {{ 'Kuota Peserta' if current_lang == 'id' else 'Participant Quota'
+            }}
+          </h3>
+          <template x-for="(act, index) in activities" :key="index">
+            <div class="mb-4 p-3 border rounded-lg dark:border-gray-700">
+              <h4 class="font-medium mb-2 text-blue-400" x-text="act.nama"></h4>
+              <div class="flex gap-3">
+                <!-- Peserta Putra -->
+                <div class="w-1/2">
+                  <label class="block text-sm mb-1">
+                    {{ 'Peserta Putra' if current_lang == 'id' else 'Male
+                    Participants' }}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    x-model="act.putra"
+                    class="w-full rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+                <!-- Peserta Putri -->
+                <div class="w-1/2">
+                  <label class="block text-sm mb-1">
+                    {{ 'Peserta Putri' if current_lang == 'id' else 'Female
+                    Participants' }}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    x-model="act.putri"
+                    class="w-full rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Tombol Navigasi -->
+          <div class="flex justify-between mt-6">
+            <button
+              @click="tab = 'periode'"
+              class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer"
+            >
+              <i class="fa-solid fa-backward"></i>
+              {{ 'Kembali' if current_lang == 'id' else 'Back' }}
+            </button>
+            <button
+              type="button"
+              @click="if (!activities[0].putra || !activities[0].putri) {alert('Kuota peserta harus ditentukan'); return;} completed.kuota = true; tab = 'kriteria'"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+            >
+              <i class="fa-solid fa-download"></i>
+              {{ 'Simpan & Lanjut' if current_lang == 'id' else 'Save & Next' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Kriteria Seleksi -->
+        <div x-show="tab==='kriteria'" x-transition>
+          <h3 class="font-semibold mb-2">
+            {{ 'Kriteria Seleksi' if current_lang == 'id' else 'Selection
+            Criteria' }}
+          </h3>
+          <div class="mb-4 p-3 border rounded-lg dark:border-gray-700">
+            <template x-for="(c, index) in criteria" :key="index">
+              <div class="flex items-center gap-2 mb-2">
+                <!-- Nama -->
+                <input
+                  type="text"
+                  x-model="c.nama"
+                  class="w-1/3 rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                />
+
+                <!-- Aspek Penilaian -->
+                <div
+                  class="w-1/3 flex items-center justify-between border px-2 rounded-lg dark:bg-gray-800 dark:text-white"
+                >
+                  <span x-text="c.aspek || 'Belum diatur'"></span>
+                  <button
+                    @click="showModal = true; selectedIndex = index"
+                    class="px-2 py-1 bg-yellow-500 text-white rounded text-xs cursor-pointer"
+                  >
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                </div>
+
+                <!-- Bobot -->
+                <div class="flex items-center w-1/3">
+                  <input
+                    type="number"
+                    x-model="c.bobot"
+                    class="w-full rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                  />
+                  <span class="ml-1">%</span>
+                </div>
+
+                <!-- Hapus -->
+                <button
+                  @click="criteria.splice(index,1)"
+                  class="px-2 py-1 bg-red-500 text-white rounded-lg text-xs cursor-pointer"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </template>
+
+            <!-- Tambah -->
+            <button
+              @click="criteria.push({nama:'', bobot:0, aspek:''})"
+              class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm mt-2 cursor-pointer"
+            >
+              {{ '+ Tambah Kriteria' if current_lang == 'id' else '+ Add
+              Criteria' }}
+            </button>
+          </div>
+
+          <!-- Tombol Navigasi -->
+          <div class="flex justify-between mt-6">
+            <button
+              @click="tab = 'kuota'"
+              class="px-4 py-2 bg-gray-300 hover:bg-gray-800 dark:bg-gray-700 rounded-lg cursor-pointer"
+            >
+              <i class="fa-solid fa-backward"></i>
+              {{ 'Kembali' if current_lang == 'id' else 'Back' }}
+            </button>
+            <button
+              type="button"
+              @click="() => window.saveConfig()"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+            >
+              <i class="fa-solid fa-download"></i>
+              {{ 'Simpan Konfigurasi' if current_lang == 'id' else 'Save
+              Configuration' }}
+            </button>
+          </div>
+
+          <!-- Modal Dinamis -->
+          <div
+            x-show="showModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          >
+            <div
+              class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-96"
+            >
+              <h4 class="font-semibold mb-4">
+                {{ 'Atur Aspek Penilaian' if current_lang == 'id' else 'S' }}
+              </h4>
+              <template
+                x-if="criteria[selectedIndex]?.nama === 'Tes Wawancara'"
+              >
+                <div class="flex flex-col gap-2">
+                  <label
+                    ><input
+                      type="checkbox"
+                      value="Kepribadian"
+                      @change="toggleAspect($event, selectedIndex)"
+                    />
+                    {{ 'Kepribadian' if current_lang == 'id' else 'Personality'
+                    }}</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      value="Pengalaman Organisasi"
+                      @change="toggleAspect($event, selectedIndex)"
+                    />
+                    {{ 'Pengalaman Organisasi' if current_lang == 'id' else
+                    'Organizational Experiences' }}</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      value="Pengetahuan Kepanduan Dunia"
+                      @change="toggleAspect($event, selectedIndex)"
+                    />
+                    {{ 'Pengetahuan Kepanduan Dunia' if current_lang == 'id'
+                    else 'S' }}</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      value="Pengetahuan Kepramukaan"
+                      @change="toggleAspect($event, selectedIndex)"
+                    />
+                    {{ 'Pengetahuan Kepramukaan' if current_lang == 'id' else
+                    'Scouting Knowledge' }}</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      value="Motivasi"
+                      @change="toggleAspect($event, selectedIndex)"
+                    />
+                    {{ 'Motivasi' if current_lang == 'id' else 'Motivation'
+                    }}</label
+                  >
+                  <label
+                    ><input
+                      type="checkbox"
+                      value="Hardskill & Softskill"
+                      @change="toggleAspect($event, selectedIndex)"
+                    />
+                    Hardskill & Softskill</label
+                  >
+                </div>
+              </template>
+
+              <template
+                x-if="criteria[selectedIndex]?.nama === 'Tes Pilihan Ganda'"
+              >
+                <div>
+                  <label class="block mb-2"
+                    >{{ 'Jumlah Soal' if current_lang == 'id' else 'Question
+                    Amount' }}</label
+                  >
+                  <input
+                    type="number"
+                    x-model="criteria[selectedIndex].jumlahSoal"
+                    min="1"
+                    class="w-full rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+              </template>
+
+              <template
+                x-if="!['Tes Wawancara','Tes Pilihan Ganda'].includes(criteria[selectedIndex]?.nama)"
+              >
+                <select
+                  x-model="criteria[selectedIndex].aspek"
+                  class="w-full rounded-lg border-gray-300 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="Kualitatif">
+                    {{ 'Kualitatif' if current_lang == 'id' else 'Qualitative'
+                    }}
+                  </option>
+                  <option value="Kuantitatif">
+                    {{ 'Kuantitatif' if current_lang == 'id' else 'Quantitative'
+                    }}
+                  </option>
+                </select>
+              </template>
+
+              <div class="mt-4 flex justify-end">
+                <button
+                  @click="showModal = false"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                  {{ 'Simpan' if current_lang == 'id' else 'Save' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </form>
 </div>
