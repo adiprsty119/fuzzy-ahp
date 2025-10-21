@@ -285,12 +285,13 @@
   <!-- Modal: Add Assessor -->
   <div
     x-show="openAddAssessor"
-    x-transition
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+    x-transition.opacity
+    class="fixed inset-0 z-50 flex items-center justify-center {{ 'bg-black/50' if current_theme == 'dark' else 'bg-gray-300/50' }}"
   >
     <div
+      x-transition.scale
       @click.away="openAddAssessor = false"
-      class="bg-white dark:bg-gray-900 p-6 rounded-xl w-full max-w-lg"
+      class="bg-white p-6 rounded-xl w-full max-w-lg relative {{ 'dark:bg-gray-900' if current_theme == 'dark' else 'dark:bg-gray-200' }}"
     >
       <h3 class="font-semibold mb-3">
         {{ 'Tambah Penilai' if current_lang == 'id' else 'Add Assessor' }}
