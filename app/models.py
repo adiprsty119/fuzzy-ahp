@@ -20,6 +20,19 @@ class Users(db.Model, UserMixin):
     token_exp = db.Column(db.DateTime, default=db.func.current_timestamp(), nullable=False)
     login_method = db.Column(db.String(100), nullable=False, default="manual")
     sidebar_state = db.Column(db.String(10), nullable=True, default='expanded')
+    status = db.Column(ENUM('aktif', 'non-aktif', name='user_status'), nullable=False, default='aktif', server_default='aktif')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nama_lengkap': self.nama_lengkap,
+            'email': self.email,
+            'username': self.username,
+            'level': self.level,
+            'status': self.status,
+            'foto': self.foto
+        }
+
 
 # Access to table tb_kegiatan
 class Event(db.Model):

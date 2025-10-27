@@ -9,7 +9,7 @@ from twilio.rest import Client
 from authlib.integrations.flask_client import OAuth
 from markupsafe import escape
 from datetime import datetime, timedelta
-# from flask_wtf import CSRFProtect
+from flask_wtf import CSRFProtect
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from forms import LoginForm, RegisterForm
 from config import Config
@@ -18,6 +18,7 @@ from flask_limiter.util import get_remote_address
 from flask_login import current_user, LoginManager, login_user, login_required
 from functools import wraps
 from app.utils.utils import log_activity
+from sqlalchemy.exc import IntegrityError
 import random, string
 import logging
 import secrets
@@ -57,8 +58,8 @@ def load_user(user_id):
     return Users.query.get(int(user_id))
 
 # Buat folder uploads jika belum ada
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+# if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    # os.makedirs(app.config['UPLOAD_FOLDER'])
     
 # Tentukan folder upload (misalnya di static/uploads)
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static/uploads')
@@ -367,25 +368,33 @@ def do_register():
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        full_name = request.form['fullName']
-        email = request.form['email']
-        username = request.form['username']
-        password = request.form['password']
-        confirm_password = request.form['confirmPassword']
+        full_name = request.form.get('fullName', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirmPassword', '')
         level = 'peserta'  
+        
+        # Apakah ada kolom yang kosong?
+        if not all([full_name, email, username, password, confirm_password]):
+            flash("Semua kolom wajib diisi.", "danger")
+            return redirect(url_for('register'))
         
         # Validasi password dengan regex
         password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
         if not re.match(password_pattern, password):
             flash("Password must have at least 8 characters, including uppercase, lowercase, number, and special character.", "danger")
             return redirect(url_for('register'))
+        
         # Validasi apakah password dan confirmPassword cocok
         if password != confirm_password:
             flash("Password and Confirm Password must match!", "danger")
             return redirect(url_for('register'))
+        
         # Cek keberadaan username dan email di database
         user_exists = check_username_in_db(username)
         email_exists = check_email_in_db(email)
+        
         if not user_exists and not email_exists:
            # Enkripsi password
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16) 
@@ -396,16 +405,17 @@ def register():
                     password=hashed_password,
                     nama_lengkap=full_name,
                     email=email,
-                    level=level
+                    level=level,
+                    status='aktif'
                 )
                 db.session.add(new_user)
                 db.session.commit()
                 flash("Registrasi berhasil! Selamat datang di sistem kami. Silakan login untuk mulai menggunakan fitur.", "welcome")
                 return redirect(url_for('login'))
-            except Exception as e:
+            except IntegrityError as e:
                 db.session.rollback()
                 logging.error(f"Error during registration: {e}")
-                flash("An error occurred during registration.Please try again.", "danger")
+                flash("An error occurred during registration, Please try again.", "danger")
                 print(e)
         elif user_exists and email_exists:
             flash("Username dan email Anda telah terdaftar.", "danger")
@@ -767,7 +777,8 @@ def admin_required(f):
 def admin_users():
     sidebar_state = current_user.sidebar_state or 'expanded'
     users = Users.query.all()
-    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, users=users, time=time)
+    users_data = [u.to_dict() for u in users]
+    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, users=users_data, time=time)
 
 @app.route('/admin/add_user', methods=['GET', 'POST'])
 @login_required
@@ -777,35 +788,60 @@ def admin_add_user():
 
     if request.method == 'POST':
         # Ambil data dari form
-        nama_lengkap = request.form.get('nama_lengkap')
+        nama_lengkap = request.form.get('fullName')
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        role = request.form.get('role')  
+        confirm_password = request.form['confirmPassword']
+        level = request.form.get('level')  
 
-        # Hash password
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-
-        # Buat objek user baru
-        new_user = Users(
-            nama_lengkap=nama_lengkap,
-            username=username,
-            email=email,
-            password=hashed_password,
-            role=role
-        )
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            flash('Pengguna baru berhasil ditambahkan!', 'success')
+        # Validasi password dengan regex
+        password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+        if not re.match(password_pattern, password):
+            flash("Password must have at least 8 characters, including uppercase, lowercase, number, and special character.", "danger")
             return redirect(url_for('admin_users'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Terjadi kesalahan: {e}', 'danger')
-    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, time=time)
+        # Validasi apakah password dan confirmPassword cocok
+        if password != confirm_password:
+            flash("Password and Confirm Password must match!", "danger")
+            return redirect(url_for('admin_users'))
+        # Cek keberadaan username dan email di database
+        user_exists = check_username_in_db(username)
+        email_exists = check_email_in_db(email)
+        if not user_exists and not email_exists:
+            # Enkripsi password
+            hashed_password = generate_password_hash(password, method='pbkdf2:sha256', salt_length=16) 
+            # Masukkan data ke database
+            try:
+                new_user = Users(
+                    username=username,
+                    password=hashed_password,
+                    nama_lengkap=nama_lengkap,
+                    email=email,
+                    level=level,
+                    status='aktif'
+                )
+                db.session.add(new_user)
+                db.session.commit()
+                flash("Akun berhasil dibuat!", "success")
+                return redirect(url_for('admin_users'))
+            except Exception as e:
+                db.session.rollback()
+                logging.error(f"Error during registration: {e}")
+                flash("An error occurred during registration, Please try again.", "danger")
+                print(e)
+        elif user_exists and email_exists:
+            flash("Username dan email Anda telah terdaftar.", "danger")
+        elif user_exists:
+            flash("Username Anda telah terdaftar.", "danger")
+        elif email_exists:
+            flash("Email Anda telah terdaftar.", "danger")
+        return redirect(url_for('admin_users'))
+    return render_template('manajemen_pengguna.html', sidebar_state=sidebar_state, users=Users.query.all(), time=time)
 
+# Admin/Import Data User
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    allowed_extensions = {'csv', 'xls', 'xlsx'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 @app.route('/admin/import_users', methods=['POST'])
 @login_required
@@ -814,72 +850,141 @@ def admin_import_users():
     if 'file' not in request.files:
         flash('Tidak ada file yang diupload!', 'error')
         return redirect(url_for('admin_users'))
-
-    file = request.files['file']
-    print(f"[DEBUG] Nama file upload: {file.filename}")
     
+    file = request.files['file']
     if file.filename == '':
         flash('Nama file tidak valid!', 'error')
+        return redirect(url_for('admin_users'))
+    
+    # validasi tipe MIME
+    if file.mimetype not in ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']:
+        flash('Tipe file tidak didukung!', 'error')
         return redirect(url_for('admin_users'))
     
     # Debug ekstensi sebelum dicek
     ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
     print(f"[DEBUG] Ekstensi file: {ext}")
-
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        print(f"[DEBUG] File berhasil disimpan di: {filepath}")
-
         try:
             # Baca file dengan pandas (deteksi otomatis CSV/Excel)
             if filename.endswith('.csv'):
                 df = pd.read_csv(filepath)
             else:
                 df = pd.read_excel(filepath)
-
-            # Normalisasi nama kolom
-            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_").str.replace("-", "_")
 
             # Kolom wajib
-            required_cols = ['nama_lengkap', 'username', 'email', 'role']
-            for col in required_cols:
-                if col not in df.columns:
-                    flash(f'Kolom {col} tidak ditemukan dalam file!', 'error')
-                    return redirect(url_for('admin_users'))
-
-            # Import data
+            required_cols = ['nama_lengkap', 'username', 'email', 'level']
+            missing = [c for c in required_cols if c not in df.columns]
+            if missing:
+                flash(f"Kolom berikut tidak ditemukan: {', '.join(missing)}", 'error')
+                return redirect(url_for('admin_users'))
+            existing_usernames = {u[0] for u in db.session.query(Users.username).all()}
+            count_added = 0
+            count_skipped = 0
+            valid_levels = {'admin', 'penilai', 'peserta'}
             for _, row in df.iterrows():
-                print(f"[DEBUG] Proses row: {row.to_dict()}")
-                # skip kalau username sudah ada
-                if Users.query.filter_by(username=row['username']).first():
-                    continue  
+                if row['username'] in existing_usernames:
+                    count_skipped += 1
+                    continue 
+                if row['level'] not in valid_levels:
+                    flash(f"Level tidak valid untuk user {row['username']}: {row['level']}", 'error')
+                    continue 
 
                 # pakai password default kalau tidak ada di file
-                password = row['password'] if 'password' in df.columns and pd.notna(row['password']) else '123456'
+                password = row['password'] if 'password' in df.columns and pd.notna(row['password']) else '12345678'
                 hashed_password = generate_password_hash(str(password))
-
                 new_user = Users(
                     nama_lengkap=row['nama_lengkap'],
                     username=row['username'],
                     email=row['email'],
                     password=hashed_password,
-                    role=row['role']
+                    level=row['level'],
+                    jenis_kelamin=row['jenis_kelamin'] if 'jenis_kelamin' in df.columns and pd.notna(row['jenis_kelamin']) else None,
+                    usia=row['usia'] if 'usia' in df.columns and pd.notna(row['usia']) else "0",
+                    nomor_hp=row['nomor_hp'] if 'nomor_hp' in df.columns and pd.notna(row['nomor_hp']) else "",
                 )
                 db.session.add(new_user)
-                print(f"[DEBUG] User {row['username']} ditambahkan ke session.")
+                count_added += 1
             db.session.commit()
-            print("[DEBUG] Commit berhasil!")
             flash('Data pengguna berhasil diimport!', 'success')
         except Exception as e:
             db.session.rollback()
+            app.logger.exception(f"Import gagal: {e}")
             print(f"[ERROR] Commit gagal: {e}")
             flash(f'Terjadi kesalahan saat import: {str(e)}', 'error')
         return redirect(url_for('admin_users'))
     else:
         flash('Format file tidak diizinkan! Gunakan CSV atau Excel.', 'error')
         return redirect(url_for('admin_users'))
+
+# Admin/Delete User
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    # Hanya admin boleh hapus
+    if current_user.level != "admin":
+        flash("Anda tidak memiliki izin untuk menghapus pengguna.", "danger")
+        return redirect(url_for('admin_users'))
+    
+    user = Users.query.get(user_id)
+    if not user:
+        flash("Pengguna tidak ditemukan!", "danger")
+        return redirect(url_for('admin_users'))
+    
+    # Proteksi: admin tidak bisa menghapus dirinya sendiri
+    if user.id == current_user.id:
+        flash("Anda tidak dapat menghapus akun Anda sendiri!", "warning")
+        return redirect(url_for('admin_users'))
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f"Pengguna '{user.username}' berhasil dihapus!", "success")
+        logging.info(f"User '{user.username}' berhasil dihapus oleh admin.")
+    except Exception as e:
+        db.session.rollback()
+        flash("Terjadi kesalahan saat menghapus data.", "danger")
+        logging.error(f"Gagal menghapus user_id {user_id}: {e}")
+    return redirect(url_for('admin_users'))
+
+# Admin/Edit User
+@app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    user = Users.query.get(user_id)
+    if not user:
+        flash("Pengguna tidak ditemukan!", "danger")
+        return redirect(url_for('admin_users'))
+    
+    user.nama_lengkap = request.form.get('nama_lengkap')
+    user.email = request.form.get('email')
+    user.username = request.form.get('username')
+    user.level = request.form.get('level')
+    user.status = request.form.get('status')
+    user.jenis_kelamin = request.form.get('jenis_kelamin')
+    user.usia = request.form.get('usia') or user.usia
+    user.nomor_hp = request.form.get('nomor_hp') or user.nomor_hp
+
+    # kalau ada file foto
+    foto_file = request.files.get('foto')
+    if foto_file and foto_file.filename:
+        # proses simpan file sesuai implementasimu
+        # simpan path ke user.foto = 'img/xxx.png'
+        pass
+
+    try:
+        db.session.commit()
+        flash(f"Data pengguna '{user.username}' berhasil diperbarui!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Terjadi kesalahan saat memperbarui data.", "danger")
+        logging.error(f"Gagal memperbarui user_id {user_id}: {e}")
+    return redirect(url_for('admin_users'))
 
 # Manajemen Seleksi   
 @app.route('/admin/manajemen_seleksi')
@@ -893,6 +998,7 @@ def admin_manajemen_seleksi():
 # Konfigurasi Seleksi
 @app.route('/api/save_config', methods=['POST'])
 @login_required
+@admin_required
 @csrf.exempt
 def save_config():
     try:
@@ -902,7 +1008,6 @@ def save_config():
 
         if not activities and not criteria_list:
             return jsonify({'status': 'error', 'message': 'No data provided'}), 400
-
         created_events = []
 
         # Buat Event & Kuota
@@ -910,7 +1015,6 @@ def save_config():
             nama = (act.get('nama') or '').strip()
             if not nama:
                 continue
-
             mulai_date = None
             selesai_date = None
             try:
@@ -920,7 +1024,6 @@ def save_config():
                     selesai_date = datetime.strptime(act['selesai'], '%Y-%m-%d').date()
             except Exception:
                 pass
-
             event = Event(
                 jenis_kegiatan=act.get('jenis', 'siaga'),
                 nama_kegiatan=nama,
@@ -933,16 +1036,13 @@ def save_config():
             )
             db.session.add(event)
             db.session.flush()
-
             kuota = Kuota(
                 event_id=event.id_kegiatan,
                 putra=int(act.get('putra') or 0),
                 putri=int(act.get('putri') or 0)
             )
             db.session.add(kuota)
-
             created_events.append(event)
-
         target_event_id = created_events[0].id_kegiatan if created_events else None
 
         # Buat Criteria
@@ -951,11 +1051,9 @@ def save_config():
             bobot = float(c.get('bobot') or 0)
             aspek = c.get('aspek', [])
             aspek_str = ', '.join(aspek) if isinstance(aspek, list) else (aspek or '')
-
             jumlah_soal = c.get('jumlah_soal') or c.get('jumlahSoal') or None
             deskripsi = c.get('deskripsi', '')
             jenis_kriteria = c.get('jenis_kriteria', 'umum')
-
             if target_event_id is None:
                 placeholder = Event(
                     jenis_kegiatan='-',
@@ -970,7 +1068,6 @@ def save_config():
                 db.session.add(placeholder)
                 db.session.flush()
                 target_event_id = placeholder.id_kegiatan
-
             crit = Criteria(
                 event_id=target_event_id,
                 nama_kriteria=nama_kriteria,
@@ -981,10 +1078,8 @@ def save_config():
                 jumlah_soal=int(jumlah_soal) if jumlah_soal else None
             )
             db.session.add(crit)
-
         db.session.commit()
         return jsonify({'status': 'success', 'message': 'Konfigurasi berhasil disimpan'}), 200
-
     except Exception as e:
         db.session.rollback()
         current_app.logger.exception('Error in /api/save_config:')
@@ -993,6 +1088,7 @@ def save_config():
 # API Kegiatan 
 @app.route('/api/kegiatan')
 @login_required
+@admin_required
 def api_kegiatan():
     kegiatan = Event.query.all()
     result = [
@@ -1014,6 +1110,7 @@ def api_kegiatan():
 # API Kuota Kegiatan
 @app.route('/api/kuota/<int:event_id>')
 @login_required
+@admin_required
 def api_kuota(event_id):
     event = Event.query.get_or_404(event_id)
     if not event.kuota:
@@ -1052,6 +1149,7 @@ def get_peserta(kegiatan_id):
 # Tambah Kegiatan
 @app.route('/admin/tambah_seleksi', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def tambah_seleksi():
     if request.method == 'POST':
         nama = request.form['nama_kegiatan']
@@ -1079,6 +1177,7 @@ def tambah_seleksi():
 # Edit Kegiatan
 @app.route('/admin/edit_kegiatan/<int:id>', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def edit_kegiatan(id):
     event = Event.query.get_or_404(id)
     if request.method == 'POST':
@@ -1094,6 +1193,7 @@ def edit_kegiatan(id):
 # Hapus Kegiatan
 @app.route('/admin/hapus_kegiatan/<int:id>', methods=['GET'])
 @login_required
+@admin_required
 def hapus_kegiatan(id):
     event = Event.query.get_or_404(id)
     db.session.delete(event)
@@ -1103,6 +1203,7 @@ def hapus_kegiatan(id):
 
 @app.route('/admin/detail_kegiatan/<int:id>')
 @login_required
+@admin_required
 def detail_kegiatan(id):
     event = Event.query.get_or_404(id)
     return render_template("detail_kegiatan.html", event=event)
