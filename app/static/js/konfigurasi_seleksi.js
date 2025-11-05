@@ -107,14 +107,25 @@ function savePeriode() {
   const comp = document.getElementById("configComponent");
   if (!comp) return;
   const state = Alpine.$data(comp);
-
-  // validasi activity
   const invalidAct = state.activities.find(
     (a) => !a.nama || !a.mulai || !a.selesai
   );
   if (invalidAct) {
     state.errorMessage = "Nama kegiatan dan periode harus diisi";
     return;
+  }
+
+  // ✅ Sinkronisasi array contingents agar sama panjang dengan activities
+  if (state.contingents.length !== state.activities.length) {
+    state.contingents = state.activities.map((act, i) => {
+      return (
+        state.contingents[i] || {
+          nama: act.nama,
+          umpiPutra: 0,
+          umpiPutri: 0,
+        }
+      );
+    });
   }
 
   // set completed & tab

@@ -5,53 +5,80 @@
   x-data="{
     tab: 'periode',
     completed: { periode: false, kontingen: false, kriteria: false },
-    activities: [{ nama:'', mulai:'', selesai:'', skala:'', jenis:'', kwartir:'', waktu:'', tempat:'', putra:0, putri:0, criteria: getDefaultCriteria() }],
+    activities: [{
+      nama:'',
+      mulai:'',
+      selesai:'',
+      skala:'',
+      jenis:'',
+      kwartir:'',
+      waktu:'',
+      tempat:'',
+      putra:0,
+      putri:0,
+      criteria: getDefaultCriteria()
+    }],
     contingents: [{ nama: '', umpiPutra: 0, umpiPutri: 0 }],
     showModal: false,
-      selectedIndex: null,
-      errorMessage: '',
-      toggleAspect(event, index) {
-        let crit = this.activities[this.aIndex].criteria[index];
-        if (event.target.checked) {
-          crit.jenis.push(event.target.value);
-        } else {
-          crit.jenis = crit.jenis.filter(a => a !== event.target.value);
-        }
-      },
-      savePeriode() {
-          const invalidAct = this.activities.find(a => !a.nama || !a.mulai || !a.selesai);
-          if (invalidAct) {
-              this.errorMessage = 'Nama kegiatan dan periode harus diisi';
-              return;
-          }
-          this.completed.periode = true;
-          this.tab = 'kontingen';
-          this.errorMessage = '';
-      },
-      saveCriteria() {
-        if (this.selectedIndex === null) return;
-        let act = this.activities[this.aIndex];
-        let crit = act.criteria[this.selectedIndex];
-
-        if (!crit.nama || crit.skala === null || crit.skala === undefined) {
-          this.errorMessage = 'Nama kriteria dan skala wajib diisi!';
-          return;
-        }
-        if (isNaN(crit.skala) || crit.skala < 0 || crit.skala > 10) {
-          this.errorMessage = 'Skala harus angka antara 0 - 10!';
-          return;
-        }
-
-        act.criteria[this.selectedIndex] = {
-          ...crit,
-          skala: parseInt(crit.skala),
-          jenis: crit.jenis || []
-        };
-        this.showModal = false;
-      },
+    selectedIndex: null,
+    errorMessage: '',
     aIndex: null,
     showDeleteModal: false,
-    deleteIndex: null
+    deleteIndex: null,
+
+    initAutocomplete(el, index) {
+         if (!window.google || !window.google.maps) return;
+         const autocomplete = new google.maps.places.Autocomplete(el, {
+           types: ['geocode', 'establishment'],
+           componentRestrictions: { country: 'id' },
+         });
+         autocomplete.addListener('place_changed', () => {
+           const place = autocomplete.getPlace();
+           this.activities[index].tempat = place.formatted_address || place.name;
+         });
+       },
+
+    toggleAspect(event, index) {
+      let crit = this.activities[this.aIndex].criteria[index];
+      if (event.target.checked) {
+        crit.jenis.push(event.target.value);
+      } else {
+        crit.jenis = crit.jenis.filter(a => a !== event.target.value);
+      }
+    },
+
+    savePeriode() {
+      const invalidAct = this.activities.find(a => !a.nama || !a.mulai || !a.selesai);
+      if (invalidAct) {
+        this.errorMessage = 'Nama kegiatan dan periode harus diisi';
+        return;
+      }
+      this.completed.periode = true;
+      this.tab = 'kontingen';
+      this.errorMessage = '';
+    },
+
+    saveCriteria() {
+      if (this.selectedIndex === null) return;
+      let act = this.activities[this.aIndex];
+      let crit = act.criteria[this.selectedIndex];
+
+      if (!crit.nama || crit.skala === null || crit.skala === undefined) {
+        this.errorMessage = 'Nama kriteria dan skala wajib diisi!';
+        return;
+      }
+      if (isNaN(crit.skala) || crit.skala < 0 || crit.skala > 10) {
+        this.errorMessage = 'Skala harus angka antara 0 - 10!';
+        return;
+      }
+
+      act.criteria[this.selectedIndex] = {
+        ...crit,
+        skala: parseInt(crit.skala),
+        jenis: crit.jenis || []
+      };
+      this.showModal = false;
+    }
   }"
   x-transition:enter="transition ease-out duration-500"
   x-transition:enter-start="opacity-0 translate-y-5"
@@ -118,10 +145,14 @@
                 <input
                   type="text"
                   x-model="act.nama"
-                  @input="errorMessage = ''"
+                  @input="errorMessage = ''; contingents[index].nama = act.nama"
                   placeholder="Contoh: Raimuna Nasional"
                   class="w-full mb-2 rounded-lg {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
                 />
+                <small x-show="act.errorNama" class="text-red-500 text-xs">
+                  {{ 'Nama kegiatan wajib diisi' if current_lang == 'id' else
+                  'Activity name is required' }}
+                </small>
 
                 <!-- Skala Kegiatan -->
                 <label class="block text-sm font-medium mb-1 mt-2">
@@ -192,13 +223,30 @@
                 <!-- Waktu Pelaksanaan -->
                 <label class="block text-sm font-medium mb-1 mt-2">
                   {{ 'Waktu Pelaksanaan' if current_lang == 'id' else 'Execution
-                  Date' }}
+                  Time' }}
                 </label>
-                <input
-                  type="date"
-                  x-model="act.waktu"
-                  class="w-full mb-2 rounded-lg {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
-                />
+                <div class="flex gap-3">
+                  <div class="w-1/2">
+                    <small class="text-gray-500"
+                      >{{ 'Mulai' if current_lang == 'id' else 'Start' }}</small
+                    >
+                    <input
+                      type="datetime-local"
+                      x-model="act.waktuMulai"
+                      class="w-full rounded-lg mb-2 {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
+                    />
+                  </div>
+                  <div class="w-1/2">
+                    <small class="text-gray-500"
+                      >{{ 'Selesai' if current_lang == 'id' else 'End' }}</small
+                    >
+                    <input
+                      type="datetime-local"
+                      x-model="act.waktuSelesai"
+                      class="w-full rounded-lg mb-2 {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
+                    />
+                  </div>
+                </div>
 
                 <!-- Tempat Pelaksanaan -->
                 <label class="block text-sm font-medium mb-1 mt-2">
@@ -207,8 +255,10 @@
                 </label>
                 <input
                   type="text"
-                  x-model="act.tempat"
+                  x-model="activities[index].tempat"
+                  placeholder="Cari lokasi..."
                   class="w-full mb-2 rounded-lg {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
+                  @focus="initAutocomplete($el, index)"
                 />
 
                 <!-- Periode Pelaksanaan -->
@@ -217,33 +267,57 @@
                   Period' }}
                 </label>
                 <div class="flex gap-3">
-                  <input
-                    type="date"
-                    x-model="act.mulai"
-                    class="w-1/2 rounded-lg {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
-                  />
-                  <input
-                    type="date"
-                    x-model="act.selesai"
-                    class="w-1/2 rounded-lg {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
-                  />
+                  <div class="w-1/2">
+                    <small class="text-gray-500"
+                      >{{ 'Mulai' if current_lang == 'id' else 'Start' }}</small
+                    >
+                    <input
+                      type="datetime-local"
+                      x-model="act.mulai"
+                      class="w-full rounded-lg mb-2 {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
+                    />
+                  </div>
+                  <div class="w-1/2">
+                    <small class="text-gray-500"
+                      >{{ 'Selesai' if current_lang == 'id' else 'End' }}</small
+                    >
+                    <input
+                      type="datetime-local"
+                      x-model="act.selesai"
+                      class="w-full rounded-lg mb-2 {{ 'border-gray-300 dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'border-gray-300 dark:bg-gray-300 dark:text-gray-900' }}"
+                    />
+                  </div>
                 </div>
 
-                <!-- Tombol Hapus -->
-                <button
-                  @click="activities.splice(index,1)"
-                  type="button"
-                  class="mt-6 px-2 py-1 bg-red-500 hover:bg-red-700 text-white rounded-lg text-xs cursor-pointer"
-                >
-                  <i class="fa-solid fa-trash"></i>
-                  {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
-                </button>
+                <!-- Tombol Aksi -->
+                <div class="flex gap-2 mt-6">
+                  <!-- Tombol Duplikat -->
+                  <button
+                    @click="activities.push(JSON.parse(JSON.stringify(activities[index])));
+                            contingents.push(JSON.parse(JSON.stringify(contingents[index])));"
+                    type="button"
+                    class="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-xs cursor-pointer"
+                  >
+                    <i class="fa-solid fa-copy"></i>
+                    {{ 'Duplikat' if current_lang == 'id' else 'Duplicate' }}
+                  </button>
+
+                  <!-- Tombol Hapus -->
+                  <button
+                    @click="activities.splice(index,1)"
+                    type="button"
+                    class="px-2 py-1 bg-red-500 hover:bg-red-700 text-white rounded-lg text-xs cursor-pointer"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                    {{ 'Hapus' if current_lang == 'id' else 'Delete' }}
+                  </button>
+                </div>
               </div>
             </template>
 
             <!-- Tambah Kegiatan -->
             <button
-              @click="activities.push({ nama:'', mulai:'', selesai:'', skala:'', jenis:'', kwartir:'', waktu:'', tempat:'', putra:0, putri:0, criteria: getDefaultCriteria() }); contingents.push({ nama:'', umpiPutra: 0, umpiPutri: 0 });"
+              @click="activities.push({ nama:'', mulai:'', selesai:'', waktuMulai: '', waktuSelesai: '', skala:'', jenis:'', kwartir:'', waktu:'', tempat:'', putra:0, putri:0, criteria: getDefaultCriteria() }); contingents.push({ nama:'', umpiPutra: 0, umpiPutri: 0 });"
               type="button"
               class="px-3 py-1 bg-green-500 hover:bg-green-700 text-white rounded-lg text-sm cursor-pointer mt-2"
             >

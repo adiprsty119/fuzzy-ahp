@@ -303,7 +303,6 @@
                           </form>
                         </div>
                       </div>
-
                       <!-- Import Data -->
 
                       <button
@@ -319,11 +318,13 @@
                       <div
                         x-show="openImport"
                         x-cloak
+                        x-transition.opacity
                         class="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm {{ 'bg-black/50' if current_theme == 'dark' else 'bg-gray-400/50' }}"
                       >
                         <div
                           class="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6 {{ 'dark:bg-gray-900' if current_theme == 'dark' else 'dark:bg-gray-200' }}"
                           @click.away="openImport = false"
+                          x-data="{ loading: false, fileName: '', previewData: null }"
                         >
                           <!-- Header -->
                           <div
@@ -355,6 +356,7 @@
                             action="{{ url_for('admin_import_users') }}"
                             method="POST"
                             enctype="multipart/form-data"
+                            @submit="loading = true"
                             class="space-y-4"
                           >
                             <!-- CSRF Token -->
@@ -363,20 +365,66 @@
                               name="csrf_token"
                               value="{{ csrf_token() }}"
                             />
-
+                            <!-- Input File -->
                             <div>
-                              <label class="block text-sm font-medium mb-1">
-                                {{ 'Pilih File (CSV/Excel)' if current_lang ==
-                                'id' else 'Choose File (CSV/Excel)' }}
+                              <label
+                                class="block text-sm font-medium mb-1 {{ 'text-gray-200 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-800 dark:text-gray-900' }}"
+                              >
+                                {{ 'Pilih File' if current_lang == 'id' else
+                                'Choose File' }}
                               </label>
-                              <input
-                                type="file"
-                                name="file"
-                                accept=".csv, .xls, .xlsx"
-                                class="w-full px-3 py-2 border rounded-lg {{ 'dark:bg-gray-800 dark:text-white focus:ring focus:ring-blue-400' if current_theme == 'dark' else 'dark:bg-gray-300 dark:text-gray-900 focus:ring focus:ring-blue-400' }}"
-                                required
-                              />
+                              <div
+                                class="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition {{ 'hover:bg-gray-50 dark:hover:bg-gray-800' if current_theme == 'dark' else 'hover:bg-gray-50 dark:hover:bg-gray-300' }}"
+                                @click="$refs.fileInput.click()"
+                              >
+                                <input
+                                  type="file"
+                                  x-ref="fileInput"
+                                  name="file"
+                                  accept=".csv,.xls,.xlsx"
+                                  @change="fileName = $refs.fileInput.files[0]?.name || ''; previewData = null"
+                                  class="hidden"
+                                  required
+                                />
+                                <template x-if="!fileName">
+                                  <p
+                                    class="text-sm {{ 'text-gray-500 dark:text-gray-300' if current_theme == 'dark' else 'text-gray-800 dark:text-gray-900' }}"
+                                  >
+                                    <i
+                                      class="fa-solid fa-cloud-upload-alt mr-1"
+                                    ></i>
+                                    {{ 'Klik untuk memilih file' if current_lang
+                                    == 'id' else 'Click to select file' }}
+                                  </p>
+                                </template>
+                                <template x-if="fileName">
+                                  <p
+                                    class="font-medium {{ 'text-gray-400 dark:text-gray-200' if current_theme == 'dark' else 'text-gray-800 dark:text-gray-900' }}"
+                                  >
+                                    <i
+                                      class="fa-solid fa-file mr-2 {{ 'text-blue-500' if current_theme == 'dark' else 'text-blue-700' }}"
+                                    ></i>
+                                    <span x-text="fileName"></span>
+                                  </p>
+                                </template>
+                              </div>
                             </div>
+
+                            <!-- Progress Indicator -->
+                            <template x-if="loading">
+                              <div
+                                class="flex items-center justify-center text-blue-500 mt-2"
+                              >
+                                <i
+                                  class="fa-solid fa-spinner animate-spin text-xl mr-2"
+                                ></i>
+                                <span
+                                  >{{'Mengupload dan memproses...' if
+                                  current_lang == 'id' else 'Uploading and
+                                  processing...' }}</span
+                                >
+                              </div>
+                            </template>
 
                             <!-- Tombol Aksi -->
                             <div class="flex justify-end gap-3 pt-4">
@@ -390,6 +438,7 @@
                               </button>
                               <button
                                 type="submit"
+                                :disabled="loading"
                                 class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition cursor-pointer"
                               >
                                 {{ 'Upload' if current_lang == 'id' else
@@ -557,40 +606,58 @@
                   }}
                 </h1>
                 <!-- Search Bar -->
-                <div class="flex flex-wrap items-center gap-3 mb-14">
-                  <input
-                    type="text"
-                    placeholder="Cari pengguna..."
-                    class="px-4 py-2 border rounded-lg {{ 'dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'dark:bg-gray-100 dark:text-gray-900' }}"
-                  />
+                <div
+                  class="flex flex-wrap items-center justify-between gap-3 mb-14"
+                >
+                  <div class="flex flex-wrap items-center gap-3">
+                    <input
+                      type="text"
+                      placeholder="Cari pengguna..."
+                      class="px-4 py-2 border rounded-lg {{ 'dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'dark:bg-gray-100 dark:text-gray-900' }}"
+                    />
 
-                  <select
-                    class="px-4 py-2 border rounded-lg {{ 'dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'dark:bg-gray-100 dark:text-gray-900' }}"
-                  >
-                    <option>
-                      {{ 'Semua Role' if current_lang == 'id' else 'All Roles'
-                      }}
-                    </option>
-                    <option>
-                      {{ 'Peserta' if current_lang == 'id' else 'Participant' }}
-                    </option>
-                    <option>
-                      {{ 'Penilai' if current_lang == 'id' else 'Evaluator' }}
-                    </option>
-                    <option>Admin</option>
-                  </select>
+                    <select
+                      class="px-4 py-2 border rounded-lg {{ 'dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'dark:bg-gray-100 dark:text-gray-900' }}"
+                    >
+                      <option>
+                        {{ 'Semua Role' if current_lang == 'id' else 'All Roles'
+                        }}
+                      </option>
+                      <option>
+                        {{ 'Peserta' if current_lang == 'id' else 'Participant'
+                        }}
+                      </option>
+                      <option>
+                        {{ 'Penilai' if current_lang == 'id' else 'Evaluator' }}
+                      </option>
+                      <option>Admin</option>
+                    </select>
 
-                  <select
-                    class="px-4 py-2 border rounded-lg {{ 'dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'dark:bg-gray-100 dark:text-gray-900' }}"
+                    <select
+                      class="px-4 py-2 border rounded-lg {{ 'dark:bg-gray-800 dark:text-white' if current_theme == 'dark' else 'dark:bg-gray-100 dark:text-gray-900' }}"
+                    >
+                      <option>Status</option>
+                      <option>
+                        {{ 'Aktif' if current_lang == 'id' else 'Active' }}
+                      </option>
+                      <option>
+                        {{ 'Nonaktif' if current_lang == 'id' else 'Inactive' }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Tombol di kanan -->
+                  <button
+                    type="button"
+                    class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition cursor-pointer"
+                    @click="
+                      fetch('{{ url_for('download_users') }}')
+                        .then(res => res.blob())
+                        .then(blob => {const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'users.csv'; document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url);});"
                   >
-                    <option>Status</option>
-                    <option>
-                      {{ 'Aktif' if current_lang == 'id' else 'Active' }}
-                    </option>
-                    <option>
-                      {{ 'Nonaktif' if current_lang == 'id' else 'Inactive' }}
-                    </option>
-                  </select>
+                    <i class="fa-solid fa-download mr-2"></i>
+                    {{ 'Unduh' if current_lang == 'id' else 'Download ' }}
+                  </button>
                 </div>
 
                 <!-- Daftar Pengguna -->
@@ -630,7 +697,11 @@
                         <td class="border p-2 px-4 py-2">{{ user.level }}</td>
                         <td class="border p-2 px-4 py-2">
                           <span
-                            class="px-2 py-1 text-xs rounded-lg {{ 'bg-green-100 text-green-600' if user.status == 'aktif' else 'bg-red-100 text-red-600' }}"
+                            class="px-2 py-1 text-xs rounded-lg"
+                            :class="{
+                              'bg-green-100 text-green-600': '{{ user.status|lower }}' === 'aktif',
+                              'bg-red-100 text-red-600': '{{ user.status|lower }}' !== 'aktif'
+                            }"
                           >
                             {{ user.status }}
                           </span>
@@ -760,28 +831,36 @@
     </div>
 
     <!-- Notifikasi Flash Modal -->
+    {% with flashed = get_flashed_messages(with_categories=True) %} {% if
+    flashed %}
     <div
       x-data="{ showFlash: true }"
       x-init="setTimeout(() => showFlash = false, 5000)"
       x-show="showFlash"
-      x-transition.opacity
+      x-transition
       x-cloak
     >
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %}
+      {% for cat, msg in flashed %} {% set category = cat %} {% if msg is
+      mapping %} {% set title = msg.title %} {% set message = msg.message %} {%
+      set category = msg.category or category %} {% else %} {% set title =
+      category|capitalize %} {% set message = msg %} {% endif %}
+
       <div
-        class="fixed bottom-5 right-5 z-50 px-6 py-4 rounded-2xl shadow-lg flex items-center gap-3 text-sm font-medium transition-all duration-500 {% if category == 'success' %} bg-green-600 text-white {% elif category == 'danger' %} bg-red-600 text-white {% else %} bg-gray-700 text-white {% endif %}"
+        class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-xl border {% if category == 'success' %} bg-green-600 text-white border-green-500 {% elif category in ['danger', 'error'] %} bg-red-600 text-white border-red-500 {% elif category == 'warning' %} bg-yellow-500 text-gray-900 border-yellow-400 {% else %} bg-gray-800 text-white border-gray-700 {% endif %}"
         x-show="showFlash"
+        x-transition
       >
-        {% if category == 'success' or category == 'welcome' %}
-        <i class="fa-solid fa-circle-check text-white text-lg"></i>
-        {% elif category == 'danger' %}
-        <i class="fa-solid fa-triangle-exclamation text-white text-lg"></i>
-        {% endif %}
-        <span>{{ message }}</span>
+        <i
+          class="fa-solid {% if category == 'success' %} fa-circle-check {% elif category in ['danger', 'error'] %} fa-triangle-exclamation {% elif category == 'warning' %} fa-exclamation-circle {% else %} fa-info-circle {% endif %} text-lg"
+        ></i>
+        <div>
+          <strong>{{ title }}</strong><br />
+          <span class="text-sm">{{ message }}</span>
+        </div>
       </div>
-      {% endfor %} {% endif %} {% endwith %}
+      {% endfor %}
     </div>
+    {% endif %} {% endwith %}
 
     <!-- Animation & Notification Script -->
     {% include 'script_animation.html' %} {% include 'script_notification.html'

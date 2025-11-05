@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, request as flask_request, redirect, url_for, flash, session, jsonify, current_app
+from flask import Flask, Response, request, render_template, request as flask_request, redirect, url_for, flash, session, jsonify, current_app
 from flask_session import Session
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,6 +19,9 @@ from flask_login import current_user, LoginManager, login_user, login_required
 from functools import wraps
 from app.utils.utils import log_activity
 from sqlalchemy.exc import IntegrityError
+import io
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 import random, string
 import logging
 import secrets
@@ -852,74 +855,155 @@ def admin_import_users():
         return redirect(url_for('admin_users'))
     
     file = request.files['file']
-    if file.filename == '':
+    if not file.filename:
         flash('Nama file tidak valid!', 'error')
         return redirect(url_for('admin_users'))
-    
-    # validasi tipe MIME
-    if file.mimetype not in ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']:
+
+    if file.mimetype not in [
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ]:
         flash('Tipe file tidak didukung!', 'error')
         return redirect(url_for('admin_users'))
-    
-    # Debug ekstensi sebelum dicek
+
     ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-    print(f"[DEBUG] Ekstensi file: {ext}")
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        try:
-            # Baca file dengan pandas (deteksi otomatis CSV/Excel)
-            if filename.endswith('.csv'):
-                df = pd.read_csv(filepath)
-            else:
-                df = pd.read_excel(filepath)
-            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_").str.replace("-", "_")
-
-            # Kolom wajib
-            required_cols = ['nama_lengkap', 'username', 'email', 'level']
-            missing = [c for c in required_cols if c not in df.columns]
-            if missing:
-                flash(f"Kolom berikut tidak ditemukan: {', '.join(missing)}", 'error')
-                return redirect(url_for('admin_users'))
-            existing_usernames = {u[0] for u in db.session.query(Users.username).all()}
-            count_added = 0
-            count_skipped = 0
-            valid_levels = {'admin', 'penilai', 'peserta'}
-            for _, row in df.iterrows():
-                if row['username'] in existing_usernames:
-                    count_skipped += 1
-                    continue 
-                if row['level'] not in valid_levels:
-                    flash(f"Level tidak valid untuk user {row['username']}: {row['level']}", 'error')
-                    continue 
-
-                # pakai password default kalau tidak ada di file
-                password = row['password'] if 'password' in df.columns and pd.notna(row['password']) else '12345678'
-                hashed_password = generate_password_hash(str(password))
-                new_user = Users(
-                    nama_lengkap=row['nama_lengkap'],
-                    username=row['username'],
-                    email=row['email'],
-                    password=hashed_password,
-                    level=row['level'],
-                    jenis_kelamin=row['jenis_kelamin'] if 'jenis_kelamin' in df.columns and pd.notna(row['jenis_kelamin']) else None,
-                    usia=row['usia'] if 'usia' in df.columns and pd.notna(row['usia']) else "0",
-                    nomor_hp=row['nomor_hp'] if 'nomor_hp' in df.columns and pd.notna(row['nomor_hp']) else "",
-                )
-                db.session.add(new_user)
-                count_added += 1
-            db.session.commit()
-            flash('Data pengguna berhasil diimport!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            app.logger.exception(f"Import gagal: {e}")
-            print(f"[ERROR] Commit gagal: {e}")
-            flash(f'Terjadi kesalahan saat import: {str(e)}', 'error')
-        return redirect(url_for('admin_users'))
-    else:
+    if not allowed_file(file.filename):
         flash('Format file tidak diizinkan! Gunakan CSV atau Excel.', 'error')
         return redirect(url_for('admin_users'))
+
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+
+    try:
+        df = pd.read_csv(filepath) if ext == 'csv' else pd.read_excel(filepath)
+        df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_").str.replace("-", "_")
+
+        required_cols = ['nama_lengkap', 'username', 'email', 'level']
+        missing = [c for c in required_cols if c not in df.columns]
+        if missing:
+            flash(f"Kolom berikut tidak ditemukan: {', '.join(missing)}", 'error')
+            return redirect(url_for('admin_users'))
+
+        existing_usernames = {u[0] for u in db.session.query(Users.username).all()}
+        valid_levels = {'admin', 'penilai', 'peserta'}
+        count_added, count_skipped = 0, 0
+        new_users = []
+
+        for _, row in df.iterrows():
+            # Validasi
+            if pd.isna(row['username']) or pd.isna(row['email']):
+                count_skipped += 1
+                continue
+            if row['username'] in existing_usernames:
+                count_skipped += 1
+                continue
+            if row['level'] not in valid_levels:
+                count_skipped += 1
+                continue
+            if '@' not in str(row['email']):
+                count_skipped += 1
+                continue
+
+            password = row['password'] if 'password' in df.columns and pd.notna(row['password']) else '12345678'
+            new_users.append(Users(
+                nama_lengkap=row['nama_lengkap'],
+                username=row['username'],
+                email=row['email'],
+                password=generate_password_hash(str(password)),
+                level=row['level'],
+                jenis_kelamin=row.get('jenis_kelamin'),
+                usia=row.get('usia', 0),
+                nomor_hp=row.get('nomor_hp', "")
+            ))
+            count_added += 1
+
+        if new_users:
+            db.session.bulk_save_objects(new_users)
+            db.session.commit()
+            flash({
+                'category': 'success',
+                'title': 'Import Berhasil ✅',
+                'message': f'{count_added} pengguna baru ditambahkan, {count_skipped} dilewati.'
+            })
+        else:
+            flash({
+                'category': 'danger',
+                'title': 'Tidak Ada Data Baru ⚠️',
+                'message': 'File sudah diproses, tetapi tidak ada pengguna baru yang ditambahkan.'
+            })
+    except Exception as e:
+        db.session.rollback()
+        app.logger.exception(f"Import gagal: {e}")
+        flash(f'Terjadi kesalahan saat import: {e}', 'error')
+    finally:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+    return redirect(url_for('admin_users'))
+
+# Download Data User
+@app.route('/download_users')
+def download_users():
+    users = Users.query.order_by(Users.nama_lengkap.asc()).all()
+    
+    # Jika tidak ada data pengguna
+    if not users:
+        flash({
+            'category': 'warning',
+            'title': 'Tidak Ada Data ⚠️',
+            'message': 'Tidak ada data pengguna yang tersedia untuk diunduh.'
+        })
+        return redirect(url_for('admin_users'))
+    
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Data Pengguna"
+    headers = ['No', 'Nama Lengkap', 'Username', 'Email', 'Level', 'Status']
+    ws.append(headers)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="4F81BD")
+    center_align = Alignment(horizontal="center", vertical="center")
+    thin_border = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
+    
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_align
+        cell.border = thin_border
+    
+    for i, u in enumerate(users, start=1):
+        ws.append([
+            i,
+            u.nama_lengkap or '',
+            u.username or '',
+            u.email or '',
+            u.level or '',
+            u.status or ''
+        ])
+        
+    # Auto width untuk setiap kolom
+    for column_cells in ws.columns:
+        length = max(len(str(cell.value)) for cell in column_cells)
+        ws.column_dimensions[column_cells[0].column_letter].width = length + 2
+    ws.freeze_panes = "A2"
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    filename = f"data_pengguna_{timestamp}.xlsx"
+    return Response(
+        output.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
 
 # Admin/Delete User
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
