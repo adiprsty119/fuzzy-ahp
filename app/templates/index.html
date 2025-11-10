@@ -551,34 +551,39 @@
             class="rounded-xl shadow-lg overflow-hidden hover:shadow-yellow-400/30 transition cursor-pointer flex flex-col {{ 'bg-gray-800' if current_theme == 'dark' else 'bg-white' }}"
           >
             <img
-              src="{{ url_for('static', filename='images/') }}"
+              src="{{ url_for('static', filename='images/kwarcab_02.JPG') }}"
               alt="{{ 'Berita 2' if current_lang == 'id' else 'News 2' }}"
               class="w-full h-48 object-cover"
             />
             <div class="flex-grow p-3.5">
               <h3 class="text-xl font-bold mb-2">
-                {{ 'Kwartir Cabang Gerakan Pramuka Merauke siap menyukseskan
-                rangkaian kegiatan menjelang pelaksanaan Hari Pramuka pada
-                tanggal 14 Agustus 2025' if current_lang == 'id' else 'The
-                Kwartir Cabang of the Gerakan Pramuka Merauke is Ready to
-                Support the Series of Activities Leading Up to Scout Day on
-                August 14, 2025' }}
+                {{ 'Kwarcab Merauke dan Bawaslu Kabupaten Merauke Teken MoU
+                Bentuk Saka Adhyasta Pemilu' if current_lang == 'id' else
+                'Merauke Scout Branch (Kwarcab) and the Merauke Regency General
+                Election Supervisory Agency (Bawaslu) Sign MoU to Establish the
+                Election Oversight Scout Unit (Saka Adhyasta Pemilu)' }}
               </h3>
               <p class="text-sm text-gray-400 mb-3">
                 {{ '10 Agustus 2025' if current_lang == 'id' else 'August 10,
                 2025' }}
               </p>
               <p class="mb-4 text-[0.9rem]">
-                {{ 'Kwartir Cabang Gerakan Pramuka Merauke menyatakan
-                komitmennya untuk menyukseskan berbagai kegiatan yang akan
-                diselenggarakan menjelang Hari Pramuka pada 14 Agustus 2025,
-                sebagai bentuk semangat dan partisipasi aktif dalam memperingati
-                hari besar kepramukaan...' if current_lang == 'id' else 'The
-                Kwartir Cabang of the Gerakan Pramuka Merauke has expressed its
-                commitment to supporting and ensuring the success of various
-                activities leading up to Scout Day on August 14, 2025, as a form
-                of enthusiasm and active participation in commemorating this
-                important scouting occasion...' }}
+                {{ 'Kwarcab Merauke bersama Badan Pengawas Pemilihan Umum
+                (Bawaslu) Kabupaten Merauke resmi menandatangani Nota
+                Kesepahaman (MoU) tentang pembentukan Saka Adhyasta Pemilu.
+                Kerja sama ini bertujuan untuk menanamkan nilai-nilai
+                kepemiluan, pengawasan partisipatif, serta meningkatkan peran
+                generasi muda Pramuka dalam mendukung penyelenggaraan pemilu
+                yang jujur, adil, dan berintegritas di Kabupaten Merauke...' if
+                current_lang == 'id' else 'The Merauke Scout Branch (Kwarcab)
+                together with the General Election Supervisory Agency (Bawaslu)
+                of Merauke Regency officially signed a Memorandum of
+                Understanding (MoU) on the establishment of the Election
+                Oversight Scout Unit (Saka Adhyasta Pemilu). This collaboration
+                aims to instill electoral values, promote participatory
+                supervision, and enhance the role of young Scouts in supporting
+                the implementation of fair, honest, and integrity-based
+                elections in Merauke Regency...' }}
               </p>
             </div>
             <a
@@ -728,149 +733,6 @@
       </div>
     </section>
 
-    <!-- Services Section -->
-    <section
-      id="services"
-      class="py-20 min-h-screen wow animate__animated animate__fadeInUp animate__delay-0.5s {{ 'bg-gray-700 text-white' if current_theme == 'dark' else 'bg-gray-200 text-black' }}"
-    >
-      <div class="container mx-auto px-6 mt-7">
-        <div class="text-center mb-12">
-          <h2
-            class="text-2xl font-semibold mb-4 pt-6 {{ 'text-yellow-400' if current_theme == 'dark' else 'text-yellow-500' }}"
-          >
-            {{ 'Layanan Kami' if current_lang == 'id' else 'Our Services' }}
-          </h2>
-          <p class="text-sm max-w-2xl mx-auto">
-            {{ 'Berbagai layanan profesional yang kami tawarkan untuk mendukung
-            transformasi digital Anda.' if current_lang == 'id' else 'Various
-            professional services we offer to support your digital
-            transformation.' }}
-          </p>
-        </div>
-
-        <!-- Services Grid -->
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-10"
-        >
-          <!-- Layanan 1 -->
-          <div
-            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
-          >
-            <div class="text-yellow-400 text-4xl mb-4">
-              <i class="fas fa-laptop-code bounce-on-hover"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2">
-              {{ 'Pengembangan Website' if current_lang == 'id' else 'Website
-              Development' }}
-            </h3>
-            <p class="text-sm">
-              {{ 'Membangun aplikasi berbasis website yang modern, responsif,
-              dan aman sesuai kebutuhan Anda.' if current_lang == 'id' else
-              'Building a modern, responsive, and secure web-based application
-              tailored to your needs.' }}
-            </p>
-          </div>
-
-          <!-- Layanan 2 -->
-          <div
-            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
-          >
-            <div class="text-yellow-400 text-4xl mb-4">
-              <i class="fas fa-server shake-on-hover"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2">
-              {{ 'Hosting & Server' if current_lang == 'id' else 'Hosting &
-              Servers' }}
-            </h3>
-            <p class="text-sm">
-              {{ 'Menyediakan layanan hosting, server, dan domain dengan
-              performa tinggi dan dukungan teknis 24/7.' if current_lang == 'id'
-              else 'Providing hosting, server, and domain services with high
-              performance and 24/7 technical support.' }}
-            </p>
-          </div>
-
-          <!-- Layanan 3 -->
-          <div
-            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
-          >
-            <div class="text-yellow-400 text-4xl mb-4">
-              <i class="fas fa-network-wired grow-on-hover"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2">
-              {{ 'IT Infrastruktur' if current_lang == 'id' else 'IT
-              Infrastructure' }}
-            </h3>
-            <p class="text-sm">
-              {{ 'Solusi lengkap untuk infrastruktur jaringan, perangkat keras,
-              dan sistem komunikasi internal perusahaan.' if current_lang ==
-              'id' else 'Comprehensive solutions for network infrastructure,
-              hardware, and internal company communication systems.' }}
-            </p>
-          </div>
-
-          <!-- Layanan 4 -->
-          <div
-            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
-          >
-            <div class="text-yellow-400 text-4xl mb-4">
-              <i class="fas fa-user-shield pulse-on-hover"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2">
-              {{ 'Konsultasi IT' if current_lang == 'id' else 'IT Consulting' }}
-            </h3>
-            <p class="text-sm">
-              {{ 'Memberikan arahan dan strategi terbaik dalam implementasi
-              teknologi informasi di berbagai sektor.' if current_lang == 'id'
-              else 'Providing guidance and the best strategies for implementing
-              information technology across various sectors.' }}
-            </p>
-          </div>
-
-          <!-- Layanan 5 -->
-          <div
-            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
-          >
-            <div class="text-yellow-400 text-4xl mb-4">
-              <div class="gear-container">
-                <i class="fas fa-cog gear-left pr-0.5"></i>
-                <i class="fas fa-cog gear-right pl-0.5"></i>
-              </div>
-            </div>
-            <h3 class="text-xl font-bold mb-2">
-              {{ 'Sistem Informasi' if current_lang == 'id' else 'Information
-              System' }}
-            </h3>
-            <p class="text-sm">
-              {{ 'Pengembangan sistem informasi untuk manajemen data, pelaporan,
-              dan otomatisasi proses bisnis.' if current_lang == 'id' else
-              'Development of information systems for data management,
-              reporting, and business process automation.' }}
-            </p>
-          </div>
-
-          <!-- Layanan 6 -->
-          <div
-            class="p-6 rounded-xl shadow-md text-center cursor-pointer hover:shadow-yellow-400/30 transition duration-300 hover-parent {{ 'bg-gray-800 hover:bg-gray-900' if current_theme == 'dark' else 'bg-white hover:bg-gray-50' }}"
-          >
-            <div class="text-yellow-400 text-4xl mb-4">
-              <i class="fas fa-mobile-alt slide-up-on-hover"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2">
-              {{ 'Aplikasi Mobile' if current_lang == 'id' else 'Mobile
-              Applications' }}
-            </h3>
-            <p class="text-sm">
-              {{ 'Pengembangan aplikasi Android/iOS yang responsif, ringan, dan
-              terintegrasi dengan sistem backend.' if current_lang == 'id' else
-              'Development of responsive, lightweight Android/iOS applications
-              integrated with backend systems.' }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Footer -->
     <footer
       class="py-12 {{ 'bg-gray-900 text-white' if current_theme == 'dark' else 'bg-gray-100 text-gray-900' }}"
@@ -882,10 +744,12 @@
         <div>
           <h3 class="text-2xl font-bold mb-4 text-yellow-400">SPARK</h3>
           <p class="text-sm text-gray-400">
-            {{ 'Solusi IT terpercaya dari Papua Selatan. Fokus pada pengembangan
-            aplikasi, server hosting, dan konsultasi digital.' if current_lang
-            == 'id' else 'Trusted IT solutions from South Papua. Focused on
-            application development, server hosting, and digital consulting.' }}
+            {{ 'Sistem Pendukung Keputusan untuk rekomendasi nilai akhir seleksi
+            peserta kegiatan Pramuka pada Tingkat Kwartir yang lebih objektif
+            dan akurat.' if current_lang == 'id' else 'Decision Support System
+            for recommending the final selection scores of Scout activity
+            participants at the Kwartir level in a more objective and accurate
+            manner.' }}
           </p>
         </div>
 
@@ -962,19 +826,6 @@
               >
                 {{ 'Kunjungi Instagram SPARK' if current_lang == 'id' else
                 'Visit SPARK’s Instagram' }}
-              </span>
-            </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              class="relative group {{ 'hover:text-yellow-400' if current_theme == 'dark' else 'hover:text-gray-900' }}"
-            >
-              <i class="fab fa-linkedin-in"></i>
-              <span
-                class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50"
-              >
-                {{ 'Kunjungi LinkedIn SPARK' if current_lang == 'id' else 'Visit
-                SPARK’s LinkedIn' }}
               </span>
             </a>
             <a
