@@ -15340,3 +15340,58 @@ sqlalchemy.exc.IntegrityError: (pymysql.err.IntegrityError) (1062, "Duplicate en
 2025-11-02 17:19:18,375 INFO:127.0.0.1 - - [02/Nov/2025 17:19:18] "[36mGET /static/js/jquery.easing.min.js HTTP/1.1[0m" 304 -
 2025-11-02 17:19:18,385 INFO:127.0.0.1 - - [02/Nov/2025 17:19:18] "[36mGET /static/js/wow.js HTTP/1.1[0m" 304 -
 2025-11-02 17:19:18,468 INFO:127.0.0.1 - - [02/Nov/2025 17:19:18] "[35m[1mGET /api/kegiatan HTTP/1.1[0m" 500 -
+2025-11-11 21:38:54,669 INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-11-11 21:38:54,670 INFO:[33mPress CTRL+C to quit[0m
+2025-11-11 21:38:54,672 INFO: * Restarting with stat
+2025-11-11 21:38:56,587 WARNING: * Debugger is active!
+2025-11-11 21:38:56,591 INFO: * Debugger PIN: 141-549-408
+2025-11-11 21:41:09,689 INFO:127.0.0.1 - - [11/Nov/2025 21:41:09] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-11-11 21:41:09,761 INFO:127.0.0.1 - - [11/Nov/2025 21:41:09] "GET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-11-11 21:41:09,784 INFO:127.0.0.1 - - [11/Nov/2025 21:41:09] "GET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-11-11 21:41:09,851 INFO:127.0.0.1 - - [11/Nov/2025 21:41:09] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=iDcmGhpQJUpXwqKoXZsO HTTP/1.1" 200 -
+2025-11-11 21:41:09,863 INFO:127.0.0.1 - - [11/Nov/2025 21:41:09] "GET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-11-11 21:41:37,980 INFO:127.0.0.1 - - [11/Nov/2025 21:41:37] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-11-11 21:41:38,042 INFO:127.0.0.1 - - [11/Nov/2025 21:41:38] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-11-11 21:41:38,094 INFO:127.0.0.1 - - [11/Nov/2025 21:41:38] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-11-11 21:41:38,182 INFO:127.0.0.1 - - [11/Nov/2025 21:41:38] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=iDcmGhpQJUpXwqKoXZsO HTTP/1.1[0m" 304 -
+2025-11-11 21:43:23,426 INFO: * Detected change in 'd:\\Kerja\\Freelance\\Freelance\\SPK-Adhy\\fuzzy-ahp\\run.py', reloading
+2025-11-11 21:43:24,205 INFO: * Restarting with stat
+2025-11-11 21:43:31,220 WARNING: * Debugger is active!
+2025-11-11 21:43:31,226 INFO: * Debugger PIN: 141-549-408
+2025-11-12 06:44:48,302 INFO: * Detected change in 'd:\\Kerja\\Freelance\\Freelance\\SPK-Adhy\\fuzzy-ahp\\run.py', reloading
+2025-11-12 06:44:48,845 INFO: * Restarting with stat
+2025-11-12 06:44:53,155 WARNING: * Debugger is active!
+2025-11-12 06:44:53,158 INFO: * Debugger PIN: 141-549-408
+2025-11-12 06:45:02,267 INFO: * Detected change in 'd:\\Kerja\\Freelance\\Freelance\\SPK-Adhy\\fuzzy-ahp\\run.py', reloading
+2025-11-12 06:45:03,454 INFO: * Restarting with stat
+2025-11-12 06:45:12,321 WARNING: * Debugger is active!
+2025-11-12 06:45:12,330 INFO: * Debugger PIN: 141-549-408
+2025-11-12 06:46:03,795 INFO: * Detected change in 'd:\\Kerja\\Freelance\\Freelance\\SPK-Adhy\\fuzzy-ahp\\run.py', reloading
+2025-11-12 06:46:04,725 INFO: * Restarting with stat
+2025-11-12 06:46:13,260 WARNING: * Debugger is active!
+2025-11-12 06:46:13,266 INFO: * Debugger PIN: 141-549-408
+2025-11-12 06:46:48,676 INFO: * Detected change in 'd:\\Kerja\\Freelance\\Freelance\\SPK-Adhy\\fuzzy-ahp\\run.py', reloading
+2025-11-12 06:46:49,459 INFO: * Restarting with stat
+2025-11-12 06:46:56,509 WARNING: * Debugger is active!
+2025-11-12 06:46:56,516 INFO: * Debugger PIN: 141-549-408
+2025-11-12 06:47:40,983 INFO: * Detected change in 'd:\\Kerja\\Freelance\\Freelance\\SPK-Adhy\\fuzzy-ahp\\run.py', reloading
+2025-11-12 06:47:41,609 INFO: * Restarting with stat
+2025-11-12 06:47:44,533 WARNING: * Debugger is active!
+2025-11-12 06:47:44,537 INFO: * Debugger PIN: 141-549-408
+2025-11-12 06:49:55,998 INFO:127.0.0.1 - - [12/Nov/2025 06:49:55] "GET / HTTP/1.1" 200 -
+2025-11-12 06:49:56,059 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "GET /static/css/output.css HTTP/1.1" 200 -
+2025-11-12 06:49:56,062 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "[33mGET /static/images/ilustrasi.png HTTP/1.1[0m" 404 -
+2025-11-12 06:49:56,065 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "GET /static/css/style.css HTTP/1.1" 200 -
+2025-11-12 06:49:56,074 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "GET /static/images/SPARK.png HTTP/1.1" 200 -
+2025-11-12 06:49:56,100 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "[33mGET /static/images/ilustrasi-3.png HTTP/1.1[0m" 404 -
+2025-11-12 06:49:56,101 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "[33mGET /static/images/ilustrasi-2.png HTTP/1.1[0m" 404 -
+2025-11-12 06:49:56,118 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2025-11-12 06:49:56,120 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "GET /static/js/jquery.min.js HTTP/1.1" 200 -
+2025-11-12 06:49:56,148 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "GET /static/js/jquery.easing.min.js HTTP/1.1" 200 -
+2025-11-12 06:49:56,150 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "GET /static/js/wow.js HTTP/1.1" 200 -
+2025-11-12 06:49:56,308 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2025-11-12 06:49:56,871 INFO:127.0.0.1 - - [12/Nov/2025 06:49:56] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-11-12 06:50:13,050 INFO:127.0.0.1 - - [12/Nov/2025 06:50:13] "GET /login/ HTTP/1.1" 200 -
+2025-11-12 06:50:13,115 INFO:127.0.0.1 - - [12/Nov/2025 06:50:13] "GET /static/js/login.js HTTP/1.1" 200 -
+2025-11-12 06:50:13,116 INFO:127.0.0.1 - - [12/Nov/2025 06:50:13] "[36mGET /static/css/output.css HTTP/1.1[0m" 304 -

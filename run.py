@@ -34,17 +34,36 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = create_app()
+
+# Load konfigurasi dari Config class terlebih dahulu
+app.config.from_object(Config)
+
+# Pastikan SECRET_KEY selalu ada (penting untuk session dan CSRF)
+if not app.config.get('SECRET_KEY'):
+    # Generate secret key jika tidak ada
+    app.config['SECRET_KEY'] = os.getenv("APP_SECRET_KEY") or secrets.token_hex(32)
+
+# Konfigurasi Session (harus setelah SECRET_KEY di-set)
 app.config['SESSION_FILE_PATH'] = os.path.join(app.root_path, 'flask_session')
+os.makedirs(app.config['SESSION_FILE_PATH'], exist_ok=True)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
+# Nonaktifkan SESSION_USE_SIGNER untuk menghindari error kompatibilitas dengan Werkzeug
+app.config['SESSION_USE_SIGNER'] = False
+app.config['SESSION_COOKIE_NAME'] = 'fuzzy_ahp_session'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_KEY_PREFIX'] = 'fuzzy_ahp:'
+
+# Konfigurasi upload folder
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-app.secret_key = os.getenv("APP_SECRET_KEY")
+
+# Inisialisasi Session setelah semua konfigurasi siap
 Session(app)
 
+# Inisialisasi CSRF Protection
 csrf = CSRFProtect(app)
-app.config.from_object(Config)
 limiter = Limiter(get_remote_address, app=app)
 logging.basicConfig(filename='login.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s:%(message)s')
